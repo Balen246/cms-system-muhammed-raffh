@@ -77,8 +77,8 @@
                     <ol>
                         <li><a href="{{ Helper::homeURL() }}">{{ __("backend.home") }}</a></li>
                         @if($webmaster_section_title !="")
-                            <li class="active"><a
-                                    href="{{ Helper::sectionURL(@$WebmasterSection->id) }}">{!! (@$WebmasterSection->id ==1)?$title:$webmaster_section_title !!}</a>
+                            <li class="active"><a href="{{ Helper::sectionURL(@$WebmasterSection->id) }}">{!!
+                            (@$WebmasterSection->id ==1)?$title:$webmaster_section_title !!}</a>
                             </li>
                         @else
                             <li class="active">{{ $title }}</li>
@@ -117,9 +117,9 @@
                                     @endif
                                     <div class="video-container">
                                         @if($Topic->video_type ==1)
-                                            <?php
-                                            $Youtube_id = Helper::Get_youtube_video_id($Topic->video_file);
-                                            ?>
+                                                <?php
+                                                $Youtube_id = Helper::Get_youtube_video_id($Topic->video_file);
+                                                ?>
                                             @if($Youtube_id !="")
                                                 {{-- Youtube Video --}}
                                                 <iframe allowfullscreen class="video-iframe"
@@ -128,9 +128,9 @@
                                                 </iframe>
                                             @endif
                                         @elseif($Topic->video_type ==2)
-                                            <?php
-                                            $Vimeo_id = Helper::Get_vimeo_video_id($Topic->video_file);
-                                            ?>
+                                                <?php
+                                                $Vimeo_id = Helper::Get_vimeo_video_id($Topic->video_file);
+                                                ?>
                                             @if($Vimeo_id !="")
                                                 {{-- Vimeo Video --}}
                                                 <iframe allowfullscreen class="video-iframe"
@@ -140,17 +140,67 @@
 
                                         @elseif($Topic->video_type ==3)
                                             @if($Topic->video_file !="")
-                                                {{-- Embed Video --}}
-                                                {!! $Topic->video_file !!}
+                                                {{-- Embed Video with Reel Styling --}}
+                                                <div class="reel-style-container">
+                                                    {!! $Topic->video_file !!}
+                                                </div>
+
+                                                <style>
+                                                    .reel-style-container {
+                                                        max-width: 400px;
+                                                        margin: 0 auto;
+                                                        border-radius: 15px;
+                                                        overflow: hidden;
+                                                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                                                        background: #000;
+                                                        position: relative;
+                                                    }
+
+                                                    .reel-style-container iframe,
+                                                    .reel-style-container video,
+                                                    .reel-style-container embed,
+                                                    .reel-style-container object {
+                                                        width: 100% !important;
+                                                        height: 600px !important;
+                                                        border-radius: 15px;
+                                                        display: block;
+                                                    }
+
+                                                    .reel-style-container::before {
+                                                        content: '';
+                                                        position: absolute;
+                                                        top: 0;
+                                                        left: 0;
+                                                        right: 0;
+                                                        bottom: 0;
+                                                        background: linear-gradient(45deg, rgba(240, 148, 51, 0.1) 0%, rgba(230, 104, 60, 0.1) 25%, rgba(220, 39, 67, 0.1) 50%, rgba(204, 35, 102, 0.1) 75%, rgba(188, 24, 136, 0.1) 100%);
+                                                        pointer-events: none;
+                                                        z-index: 1;
+                                                        border-radius: 15px;
+                                                    }
+
+                                                    .reel-style-container::after {
+                                                        content: 'REEL';
+                                                        position: absolute;
+                                                        top: 15px;
+                                                        left: 15px;
+                                                        background: rgba(0, 0, 0, 0.7);
+                                                        color: white;
+                                                        padding: 6px 12px;
+                                                        border-radius: 15px;
+                                                        font-size: 11px;
+                                                        font-weight: bold;
+                                                        z-index: 2;
+                                                        pointer-events: none;
+                                                    }
+                                                </style>
                                             @endif
 
                                         @else
-                                            <video class="video-js" controls autoplay preload="auto" width="100%"
-                                                   height="500"
-                                                   poster="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}"
-                                                   data-setup="{}">
+                                            <video class="video-js" controls autoplay preload="auto" width="100%" height="500"
+                                                   poster="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}" data-setup="{}">
                                                 <source src="{{ URL::to('uploads/topics/'.$Topic->video_file) }}"
-                                                        type="video/mp4"/>
+                                                        type="video/mp4" />
                                                 <p class="vjs-no-js">
                                                     To view this video please enable JavaScript, and consider upgrading
                                                     to a
@@ -177,14 +227,12 @@
                                         </div>
                                     @endif
                                     @if($Topic->photo_file !="")
-                                        <img src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}"  loading="lazy"
-                                             alt="{{ $title }}"/>
+                                        <img src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}" loading="lazy"
+                                             alt="{{ $title }}" />
                                     @endif
                                     <div class="audio-player">
                                         <audio crossorigin preload="none">
-                                            <source
-                                                src="{{ URL::to('uploads/topics/'.$Topic->audio_file) }}"
-                                                type="audio/mpeg">
+                                            <source src="{{ URL::to('uploads/topics/'.$Topic->audio_file) }}" type="audio/mpeg">
                                         </audio>
                                     </div>
                                 </div>
@@ -194,100 +242,99 @@
                                 <div>
                                     @if($WebmasterSection->title_status)
                                         <div class="post-heading" ">
-                                            <h1>
-                                                @if($Topic->icon !="")
-                                                    <i class="fa {!! $Topic->icon !!} "></i>&nbsp;
-                                                @endif
-                                                {{ $title }}
-                                            </h1>
-                                        </div>
-                                    @endif
-
-                                    @if($Topic->photo_file !="")
-                                        <div class="post-image mb-2">
-                                            <a href="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}"
-                                               class="galelry-lightbox" title="{{ $title }}">
-                                                <img  loading="lazy"
-                                                    src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}"
-                                                    alt="{{ $title }}" class="post-main-photo" width="100%" />
-                                            </a>
-                                        </div>
-                                    @endif
-
-                                    <div id="gallery" class="gallery line-frame mb-3 post-gallery">
-                                        <div class="row g-0 m-0">
-                                            <?php
-                                            $cols_lg = 3;
-                                            $cols_md = 4;
-                                            if ($Categories->count() > 1) {
-                                                $cols_lg = 4;
-                                                $cols_md = 6;
-                                            }
-                                            if ($Topic->photos->count() == 3) {
-                                                $cols_lg = 4;
-                                                $cols_md = 4;
-                                            }
-                                            if ($Topic->photos->count() == 2) {
-                                                $cols_lg = 6;
-                                                $cols_md = 6;
-                                            }
-                                            ?>
-                                            @foreach($Topic->photos as $photo)
-                                                <div class="col-lg-{{ $cols_lg }} col-md-{{ $cols_md }}">
-                                                    <div class="gallery-item">
-                                                        <a href="{{ URL::to('uploads/topics/'.$photo->file) }}"
-                                                           class="galelry-lightbox" title="{{ $photo->title }}">
-                                                            <img src="{{ URL::to('uploads/topics/'.$photo->file) }}"  loading="lazy"
-                                                                 alt="{{ $photo->title }}" class="img-fluid">
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                {{--one photo--}}
-                                <div class="post-image" >
-                                    @if($WebmasterSection->title_status)
-                                        <div class="post-heading" style="display: block">
-                                            <h1>
-                                                @if($Topic->icon !="")
-                                                    <i class="fa {!! $Topic->icon !!} "></i>&nbsp;
-                                                @endif
-                                                {{ $title }}
-                                            </h1>
-                                        </div>
-                                    @endif
-                                    @if($Topic->photo_file !="")
-
-                                        <img src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}" loading="lazy"
-                                             alt="{{ $title }}" title="{{ $title }}" class="post-main-photo" width="100%"/>
-
-                                        <br>
-                                    @endif
+                                        <h1>
+                                            @if($Topic->icon !="")
+                                                <i class=" fa {!! $Topic->icon !!} "></i>&nbsp;
+                                            @endif
+                                            {{ $title }}
+                                        </h1>
                                 </div>
                             @endif
 
-                            @include("frontEnd.topic.fields",["cols"=>6,"Fields"=>@$Topic->webmasterSection->customFields->where("in_page",true)])
-
-                            <div class="article-body">
-                                {!! str_replace('"#','"'.Request::url().'#',$Topic->$details) !!}
-                            </div>
-
-                            @if($attach_file !="")
-                                <?php
-                                $file_ext = strrchr($Topic->attach_file, ".");
-                                $file_ext = strtolower($file_ext);
-                                ?>
-                                <div class="bottom-article">
-                                    <a href="{{ URL::to('uploads/topics/'.$Topic->attach_file) }}" target="_blank">
-                                        <strong>
-                                            {!! Helper::GetIcon(URL::to('uploads/topics/'),$Topic->attach_file) !!}
-                                            &nbsp;{{ __('frontend.downloadAttach') }}</strong>
+                            @if($Topic->photo_file !="")
+                                <div class="post-image mb-2">
+                                    <a href="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}" class="galelry-lightbox"
+                                       title="{{ $title }}">
+                                        <img loading="lazy" src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}"
+                                             alt="{{ $title }}" class="post-main-photo" width="100%" />
                                     </a>
                                 </div>
                             @endif
+
+                            <div id="gallery" class="gallery line-frame mb-3 post-gallery">
+                                <div class="row g-0 m-0">
+                                        <?php
+                                        $cols_lg = 3;
+                                        $cols_md = 4;
+                                        if ($Categories->count() > 1) {
+                                            $cols_lg = 4;
+                                            $cols_md = 6;
+                                        }
+                                        if ($Topic->photos->count() == 3) {
+                                            $cols_lg = 4;
+                                            $cols_md = 4;
+                                        }
+                                        if ($Topic->photos->count() == 2) {
+                                            $cols_lg = 6;
+                                            $cols_md = 6;
+                                        }
+                                        ?>
+                                    @foreach($Topic->photos as $photo)
+                                        <div class="col-lg-{{ $cols_lg }} col-md-{{ $cols_md }}">
+                                            <div class="gallery-item">
+                                                <a href="{{ URL::to('uploads/topics/'.$photo->file) }}"
+                                                   class="galelry-lightbox" title="{{ $photo->title }}">
+                                                    <img src="{{ URL::to('uploads/topics/'.$photo->file) }}" loading="lazy"
+                                                         alt="{{ $photo->title }}" class="img-fluid">
+                                                </a>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                    </div>
+                    @else
+                        {{--one photo--}}
+                        <div class="post-image">
+                            @if($WebmasterSection->title_status)
+                                <div class="post-heading" style="display: block">
+                                    <h1>
+                                        @if($Topic->icon !="")
+                                            <i class="fa {!! $Topic->icon !!} "></i>&nbsp;
+                                        @endif
+                                        {{ $title }}
+                                    </h1>
+                                </div>
+                            @endif
+                            @if($Topic->photo_file !="")
+
+                                <img src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}" loading="lazy"
+                                     alt="{{ $title }}" title="{{ $title }}" class="post-main-photo" width="100%" />
+
+                                <br>
+                            @endif
+                        </div>
+                    @endif
+
+                    @include("frontEnd.topic.fields",["cols"=>6,"Fields"=>@$Topic->webmasterSection->customFields->where("in_page",true)])
+
+                    <div class="article-body">
+                        {!! str_replace('"#','"'.Request::url().'#',$Topic->$details) !!}
+                    </div>
+
+                    @if($attach_file !="")
+                            <?php
+                            $file_ext = strrchr($Topic->attach_file, ".");
+                            $file_ext = strtolower($file_ext);
+                            ?>
+                        <div class="bottom-article">
+                            <a href="{{ URL::to('uploads/topics/'.$Topic->attach_file) }}" target="_blank">
+                                <strong>
+                                    {!! Helper::GetIcon(URL::to('uploads/topics/'),$Topic->attach_file) !!}
+                                    &nbsp;{{ __('frontend.downloadAttach') }}</strong>
+                            </a>
+                        </div>
+                        @endif
                         </article>
                         @include("frontEnd.topic.files")
 
@@ -296,10 +343,8 @@
                         @include("frontEnd.topic.tags")
 
                         @if($WebmasterSection->type == 7)
-                            <a href="{!! Helper::sectionURL($Topic->webmaster_id) !!}"
-                               class="btn btn-lg btn-secondary"
-                               style="width: 100%"><i
-                                    class="fa-solid fa-reply"></i> {{ __('backend.clickToNewSearch') }}
+                            <a href="{!! Helper::sectionURL($Topic->webmaster_id) !!}" class="btn btn-lg btn-secondary"
+                               style="width: 100%"><i class="fa-solid fa-reply"></i> {{ __('backend.clickToNewSearch') }}
                             </a>
                         @else
                             @include("frontEnd.topic.share")
@@ -316,23 +361,23 @@
 
                         @include("frontEnd.topic.related")
 
-                    </div>
                 </div>
             </div>
-        </section>
+    </div>
+    </section>
     </div>
     @include('frontEnd.layouts.popup',['Popup'=>@$Popup])
 @endsection
 @if (@in_array(@$WebmasterSection->type, [2]))
     @push('before-styles')
         <link rel="stylesheet"
-              href="{{ URL::asset('assets/frontend/vendor/video-js/css/video-js.min.css') }}?v={{ Helper::system_version() }}"/>
+              href="{{ URL::asset('assets/frontend/vendor/video-js/css/video-js.min.css') }}?v={{ Helper::system_version() }}" />
     @endpush
     @push('after-scripts')
-        <script
-            src="{{ URL::asset('assets/frontend/vendor/video-js/js/video-js.min.css') }}?v={{ Helper::system_version() }}"></script>
+        <script src="{{ URL::asset('assets/frontend/vendor/video-js/js/video-js.min.css') }}?v={{ Helper::system_version() }}">
+        </script>
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('DOMContentLoaded', function() {
                 GreenAudioPlayer.init({
                     selector: '.audio-player',
                     stopOthersOnPlay: true,
@@ -345,13 +390,14 @@
 @if (@in_array(@$WebmasterSection->type, [3]))
     @push('before-styles')
         <link rel="stylesheet"
-              href="{{ URL::asset('assets/frontend/vendor/green-audio-player/css/green-audio-player.min.css') }}?v={{ Helper::system_version() }}"/>
+              href="{{ URL::asset('assets/frontend/vendor/green-audio-player/css/green-audio-player.min.css') }}?v={{ Helper::system_version() }}" />
     @endpush
     @push('after-scripts')
         <script
-            src="{{ URL::asset('assets/frontend/vendor/green-audio-player/js/green-audio-player.min.js') }}?v={{ Helper::system_version() }}"></script>
+            src="{{ URL::asset('assets/frontend/vendor/green-audio-player/js/green-audio-player.min.js') }}?v={{ Helper::system_version() }}">
+        </script>
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('DOMContentLoaded', function() {
                 GreenAudioPlayer.init({
                     selector: '.audio-player',
                     stopOthersOnPlay: true,
