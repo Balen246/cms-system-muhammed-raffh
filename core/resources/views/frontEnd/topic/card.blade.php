@@ -3,6 +3,7 @@
         <div class="card post-card pa-0 mb-4">
             @if($Topic->webmasterSection->type==2 && $Topic->video_file!="")
                 {{--video--}}
+
                 <a href="{{ $topic_link_url }}">
                     <div class="video-container position-relative">
                         @if ($Topic->photo_file != "")
@@ -33,6 +34,7 @@
                     </div>
                 </a>
             @elseif($Topic->webmasterSection->type==3 && $Topic->audio_file!="")
+
                 {{--audio--}}
                 <div class="audio-container position-relative">
                     @if($Topic->photo_file !="")
@@ -49,6 +51,7 @@
                     </div>
                 </div>
             @elseif(count($Topic->photos)>0)
+
                 {{--photo slider--}}
                 <a href="{{ $topic_link_url }}">
                     <div class="image-container position-relative">
@@ -72,6 +75,7 @@
                     </div>
                 </a>
             @else
+
                 {{--one photo--}}
                 <a href="{{ $topic_link_url }}">
                     <div class="image-container position-relative">
@@ -92,6 +96,7 @@
                         {{ $title }}
                     </h3>
                 </a>
+
                 {{--Additional Feilds--}}
                 @include("frontEnd.topic.fields",["cols"=>12,"Fields"=>@$Topic->webmasterSection->customFields->where("in_listing",true)])
 

@@ -15,10 +15,10 @@
             {!! Form::text('social_link2',$Setting->social_link2, array('placeholder' => __('backend.twitter'),'class' => 'form-control', 'dir'=>'ltr')) !!}
         </div>
 
-        <div class="form-group">
-            <label><i class="fa fa-linkedin"></i> &nbsp; {!!  __('backend.linkedin') !!}</label>
-            {!! Form::text('social_link4',$Setting->social_link4, array('placeholder' => __('backend.linkedin'),'class' => 'form-control', 'dir'=>'ltr')) !!}
-        </div>
+{{--        <div class="form-group">--}}
+{{--            <label><i class="fa fa-linkedin"></i> &nbsp; {!!  __('backend.linkedin') !!}</label>--}}
+{{--            {!! Form::text('social_link4',$Setting->social_link4, array('placeholder' => __('backend.linkedin'),'class' => 'form-control', 'dir'=>'ltr')) !!}--}}
+{{--        </div>--}}
 
         <div class="form-group">
             <label><i class="fa fa-youtube-play"></i> &nbsp; {!!  __('backend.youtube') !!}
@@ -32,16 +32,16 @@
             {!! Form::text('social_link6',$Setting->social_link6, array('placeholder' => __('backend.instagram'),'class' => 'form-control', 'dir'=>'ltr')) !!}
         </div>
 
-        <div class="form-group">
-            <label><i class="fa fa-pinterest"></i> &nbsp; {!!  __('backend.pinterest') !!}
-            </label>
-            {!! Form::text('social_link7',$Setting->social_link7, array('placeholder' => __('backend.pinterest'),'class' => 'form-control', 'dir'=>'ltr')) !!}
-        </div>
+{{--        <div class="form-group">--}}
+{{--            <label><i class="fa fa-pinterest"></i> &nbsp; {!!  __('backend.pinterest') !!}--}}
+{{--            </label>--}}
+{{--            {!! Form::text('social_link7',$Setting->social_link7, array('placeholder' => __('backend.pinterest'),'class' => 'form-control', 'dir'=>'ltr')) !!}--}}
+{{--        </div>--}}
 
-        <div class="form-group">
-            <label><i class="fa fa-threads"></i> &nbsp; Threads</label>
-            {!! Form::text('social_link8',$Setting->social_link8, array('placeholder' => 'Threads','class' => 'form-control', 'dir'=>'ltr')) !!}
-        </div>
+{{--        <div class="form-group">--}}
+{{--            <label><i class="fa fa-threads"></i> &nbsp; Threads</label>--}}
+{{--            {!! Form::text('social_link8',$Setting->social_link8, array('placeholder' => 'Threads','class' => 'form-control', 'dir'=>'ltr')) !!}--}}
+{{--        </div>--}}
 
         <div class="form-group">
             <label><i class="fa fa-snapchat"></i> &nbsp; {!!  __('backend.snapchat') !!}</label>

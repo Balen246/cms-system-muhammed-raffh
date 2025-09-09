@@ -48,6 +48,7 @@
                     <div class="col-md-12">
                         <article class="mb-5">
                             @if($WebmasterSection->type==2 && $Topic->video_file!="")
+
                                 {{--video--}}
                                 <div class="post-video">
                                     <div class="video-container">
@@ -84,6 +85,7 @@
                                     </div>
                                 </div>
                             @elseif($WebmasterSection->type==3 && $Topic->audio_file!="")
+
                                 {{--audio--}}
                                 <div class="post-video">
                                     <div class="video-container">
@@ -97,6 +99,7 @@
                                 </div>
 
                             @elseif(count($Topic->photos)>0)
+
                                 {{--photo slider--}}
                                 <div class="post-slider">
                                     <!-- start flexslider -->
@@ -164,13 +167,15 @@
                     <div class="col-lg-4">
                         <h3 class="sub-title">{{ __('frontend.contactDetails') }}</h3>
                         <div class="info">
-                            @if(Helper::GeneralSiteSettings("contact_t1_" . @Helper::currentLanguage()->code) !="")
-                                <div class="address">
-                                    <i class="bi bi-geo-alt"></i>
-                                    <h4>{{ __('frontend.address') }}:</h4>
-                                    <p>{{ Helper::GeneralSiteSettings("contact_t1_" . @Helper::currentLanguage()->code) }}</p>
-                                </div>
-                            @endif
+{{--                            @if(Helper::GeneralSiteSettings("contact_t1_" . @Helper::currentLanguage()->code) !="")--}}
+{{--                                <div class="address">--}}
+{{--                                    <i class="bi bi-geo-alt"></i>--}}
+{{--                                    <h4>{{ __('frontend.address') }}:</h4>--}}
+{{--                                    <p>{{ Helper::GeneralSiteSettings("contact_t1_" . @Helper::currentLanguage()->code) }}</p>--}}
+{{--                                </div>--}}
+{{--                            @endif--}}
+
+                                            {{-- PHONE --}}
                             @if(Helper::GeneralSiteSettings("contact_t3") !="")
                                 <div class="phone">
                                     <i class="bi bi-telephone"></i>
@@ -179,22 +184,28 @@
                                             dir="ltr">{{ Helper::GeneralSiteSettings("contact_t3") }}</span></p>
                                 </div>
                             @endif
-                            @if(Helper::GeneralSiteSettings("contact_t5") !="")
-                                <div class="phone">
-                                    <i class="bi bi-telephone"></i>
-                                    <h4>{{ __('frontend.callMobile') }}:</h4>
-                                    <p><span
-                                            dir="ltr">{{ Helper::GeneralSiteSettings("contact_t5") }}</span></p>
-                                </div>
-                            @endif
-                            @if(Helper::GeneralSiteSettings("contact_t4") !="")
-                                <div class="phone">
-                                    <i class="fa fa-fax"></i>
-                                    <h4>{{ __('frontend.callFax') }}:</h4>
-                                    <p><span
-                                            dir="ltr">{{ Helper::GeneralSiteSettings("contact_t4") }}</span></p>
-                                </div>
-                            @endif
+
+                                            {{-- MOBILE --}}
+{{--                            @if(Helper::GeneralSiteSettings("contact_t5") !="")--}}
+{{--                                <div class="phone">--}}
+{{--                                    <i class="bi bi-telephone"></i>--}}
+{{--                                    <h4>{{ __('frontend.callMobile') }}:</h4>--}}
+{{--                                    <p><span--}}
+{{--                                            dir="ltr">{{ Helper::GeneralSiteSettings("contact_t5") }}</span></p>--}}
+{{--                                </div>--}}
+{{--                            @endif--}}
+
+                                            {{-- FAX --}}
+{{--                            @if(Helper::GeneralSiteSettings("contact_t4") !="")--}}
+{{--                                <div class="phone">--}}
+{{--                                    <i class="fa fa-fax"></i>--}}
+{{--                                    <h4>{{ __('frontend.callFax') }}:</h4>--}}
+{{--                                    <p><span--}}
+{{--                                            dir="ltr">{{ Helper::GeneralSiteSettings("contact_t4") }}</span></p>--}}
+{{--                                </div>--}}
+{{--                            @endif--}}
+
+                                         {{-- EMAIL --}}
                             @if(Helper::GeneralSiteSettings("contact_t6") !="")
                                 <div class="email">
                                     <i class="bi bi-envelope"></i>
@@ -202,13 +213,15 @@
                                     <p>{{ Helper::GeneralSiteSettings("contact_t6") }}</p>
                                 </div>
                             @endif
-                            @if(Helper::GeneralSiteSettings("contact_t7_" . @Helper::currentLanguage()->code) !="")
-                                <div class="email">
-                                    <i class="bi bi-clock"></i>
-                                    <h4>{{ __('frontend.callTimes') }}:</h4>
-                                    <p>{{ Helper::GeneralSiteSettings("contact_t7_" . @Helper::currentLanguage()->code) }}</p>
-                                </div>
-                            @endif
+
+                                        {{-- WORKING TIME --}}
+{{--                            @if(Helper::GeneralSiteSettings("contact_t7_" . @Helper::currentLanguage()->code) !="")--}}
+{{--                                <div class="email">--}}
+{{--                                    <i class="bi bi-clock"></i>--}}
+{{--                                    <h4>{{ __('frontend.callTimes') }}:</h4>--}}
+{{--                                    <p>{{ Helper::GeneralSiteSettings("contact_t7_" . @Helper::currentLanguage()->code) }}</p>--}}
+{{--                                </div>--}}
+{{--                            @endif--}}
                         </div>
 
                     </div>

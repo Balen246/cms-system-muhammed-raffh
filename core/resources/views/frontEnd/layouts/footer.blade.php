@@ -125,19 +125,19 @@ if (!Helper::GeneralSiteSettings("style_subscribe")) {
                     &copy; <?php echo date("Y") ?> {{ __('frontend.AllRightsReserved') }}
                 </div>
                 <div class="credits">
-                    Powered by <a href="">Black-Box-Tech</a>
+                    Powered by <a href="/">Black-Box-Tech</a>
                 </div>
             </div>
             @include("frontEnd.layouts.social",["tt_position"=>"top"])
         </div>
     </div>
 </footer>
-@if(Helper::GeneralSiteSettings('social_link10'))
-    <a href="https://wa.me/{{Helper::GeneralSiteSettings('social_link10')}}" class="whatsapp_float" target="_blank"  aria-label="Whatsapp"
-       rel="noopener noreferrer">
-        <i class="fa fa-whatsapp"></i>
-    </a>
-@endif
+{{--@if(Helper::GeneralSiteSettings('social_link10'))--}}
+{{--    <a href="https://wa.me/{{Helper::GeneralSiteSettings('social_link10')}}" class="whatsapp_float" target="_blank"  aria-label="Whatsapp"--}}
+{{--       rel="noopener noreferrer">--}}
+{{--        <i class="fa fa-whatsapp"></i>--}}
+{{--    </a>--}}
+{{--@endif--}}
 @if (@Auth::check())
     @if(!Helper::GeneralSiteSettings("site_status"))
         <div class="text-center alert alert-warning m-0">

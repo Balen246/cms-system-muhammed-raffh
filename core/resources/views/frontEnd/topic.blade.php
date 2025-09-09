@@ -193,7 +193,7 @@
                                 {{--photo slider--}}
                                 <div>
                                     @if($WebmasterSection->title_status)
-                                        <div class="post-heading">
+                                        <div class="post-heading" ">
                                             <h1>
                                                 @if($Topic->icon !="")
                                                     <i class="fa {!! $Topic->icon !!} "></i>&nbsp;
@@ -209,7 +209,7 @@
                                                class="galelry-lightbox" title="{{ $title }}">
                                                 <img  loading="lazy"
                                                     src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}"
-                                                    alt="{{ $title }}" class="post-main-photo">
+                                                    alt="{{ $title }}" class="post-main-photo" width="100%" />
                                             </a>
                                         </div>
                                     @endif
@@ -248,9 +248,9 @@
                                 </div>
                             @else
                                 {{--one photo--}}
-                                <div class="post-image">
+                                <div class="post-image" >
                                     @if($WebmasterSection->title_status)
-                                        <div class="post-heading">
+                                        <div class="post-heading" style="display: block">
                                             <h1>
                                                 @if($Topic->icon !="")
                                                     <i class="fa {!! $Topic->icon !!} "></i>&nbsp;
@@ -260,8 +260,10 @@
                                         </div>
                                     @endif
                                     @if($Topic->photo_file !="")
-                                        <img src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}"  loading="lazy"
-                                             alt="{{ $title }}" title="{{ $title }}" class="post-main-photo"/>
+
+                                        <img src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}" loading="lazy"
+                                             alt="{{ $title }}" title="{{ $title }}" class="post-main-photo" width="100%"/>
+
                                         <br>
                                     @endif
                                 </div>
