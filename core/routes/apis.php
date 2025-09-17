@@ -28,6 +28,13 @@ Route::get('/topic/comment/{comment_id}/{lang?}', 'APIsController@topic_comment'
 Route::get('/topic/related/{topic_id}/{lang?}', 'APIsController@topic_related');
 // topic page
 Route::get('/topic/{topic_id}/{lang?}', 'APIsController@topic');
+// embed video navigation
+Route::get('/embed-video/next/{topic_id}/{lang?}', 'APIsController@nextEmbedVideo');
+Route::get('/embed-video/previous/{topic_id}/{lang?}', 'APIsController@previousEmbedVideo');
+// test route
+Route::get('/test-embed', function() {
+    return response()->json(['status' => 'success', 'message' => 'API is working']);
+});
 // user topics
 Route::get('/user/{user_id}/topics/page/{page_number?}/count/{topics_count?}/{lang?}', 'APIsController@user_topics');
 // Forms Submit

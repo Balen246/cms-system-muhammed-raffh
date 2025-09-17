@@ -2357,4 +2357,100 @@ For more details check <a href='http://smartfordesign.net/smartend/documentation
 
     }
 
+    public function nextEmbedVideo($topic_id, $lang = '')
+    {
+        \Log::info('nextEmbedVideo called with topic_id: ' . $topic_id . ', lang: ' . $lang);
+        return $this->getEmbedVideoNavigation($topic_id, 'next', $lang);
+    }
+
+    public function previousEmbedVideo($topic_id, $lang = '')
+    {
+        \Log::info('previousEmbedVideo called with topic_id: ' . $topic_id . ', lang: ' . $lang);
+        return $this->getEmbedVideoNavigation($topic_id, 'previous', $lang);
+    }
+
+    private function getEmbedVideoNavigation($topic_id, $direction, $lang = '')
+    {
+        \Log::info('getEmbedVideoNavigation called with topic_id: ' . $topic_id . ', direction: ' . $direction . ', lang: ' . $lang);
+        
+        if ($topic_id > 0) {
+            // Get current topic
+            $CurrentTopic = Topic::where([['id', '=', $topic_id], ['status', 1], ['expire_date', '>=', date("Y-m-d")], ['expire_date', '<>', null]])->orWhere([['id', '=', $topic_id], ['status', 1], ['expire_date', null]])->first();
+            
+            \Log::info('Current topic found: ' . ($CurrentTopic ? 'Yes' : 'No'));
+
+            if (!empty($CurrentTopic)) {
+                $WebmasterSection = $CurrentTopic->webmasterSection;
+                if (!empty($WebmasterSection) && $WebmasterSection->type == 2) { // Video section
+                    
+                    // Get all embed video topics in the same section (video_type = 3 for embed)
+                    $embedTopics = Topic::where([
+                        ['webmaster_id', '=', $WebmasterSection->id],
+                        ['status', 1],
+                        ['video_type', 3], // Embed video type
+                        ['video_file', '!=', ''],
+                        ['video_file', '!=', null]
+                    ])
+                    ->where(function($query) {
+                        $query->where([['expire_date', '>=', date("Y-m-d")], ['expire_date', '<>', null]])
+                              ->orWhere('expire_date', null);
+                    })
+                    ->orderby('row_no', 'asc')
+                    ->get();
+
+                    if (count($embedTopics) > 1) {
+                        $currentIndex = -1;
+                        foreach ($embedTopics as $index => $topic) {
+                            if ($topic->id == $topic_id) {
+                                $currentIndex = $index;
+                                break;
+                            }
+                        }
+
+                        if ($currentIndex !== -1) {
+                            $targetIndex = -1;
+                            if ($direction === 'next') {
+                                $targetIndex = ($currentIndex + 1) % count($embedTopics);
+                            } else {
+                                $targetIndex = ($currentIndex - 1 + count($embedTopics)) % count($embedTopics);
+                            }
+
+                            $targetTopic = $embedTopics[$targetIndex];
+                            
+                            // By Language
+                            $lang = $this->getLanguage($lang);
+                            $title_var = "title_$lang";
+                            $title_var2 = "title_" . config('smartend.default_language');
+                            
+                            $topic_title = "";
+                            if ($targetTopic->$title_var != "") {
+                                $topic_title = $targetTopic->$title_var;
+                            } else {
+                                $topic_title = $targetTopic->$title_var2;
+                            }
+
+                            // Response
+                            $response = [
+                                'code' => '1',
+                                'topic_id' => $targetTopic->id,
+                                'title' => $topic_title,
+                                'video_file' => $targetTopic->video_file,
+                                'photo_file' => $targetTopic->photo_file,
+                                'url' => Helper::topicURL($targetTopic->id, $lang)
+                            ];
+                            return response()->json($response, 200);
+                        }
+                    }
+                }
+            }
+        }
+
+        // No data found
+        $response = [
+            'code' => '0',
+            'msg' => 'No more embed videos available'
+        ];
+        return response()->json($response, 404);
+    }
+
 }

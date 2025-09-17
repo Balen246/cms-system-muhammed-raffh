@@ -1,0 +1,806 @@
+@extends('frontEnd.layouts.master')
+
+@section('content')
+<div>
+    <?php
+        $title_var = "title_" . @Helper::currentLanguage()->code;
+        $title_var2 = "title_" . config('smartend.default_language');
+        $details_var = "details_" . @Helper::currentLanguage()->code;
+        $details_var2 = "details_" . config('smartend.default_language');
+        if ($Topic->$title_var != "") {
+            $title = $Topic->$title_var;
+        } else {
+            $title = $Topic->$title_var2;
+        }
+        if ($Topic->$details_var != "") {
+            $details = $details_var;
+        } else {
+            $details = $details_var2;
+        }
+        $section = "";
+        try {
+            if ($Topic->section->$title_var != "") {
+                $section = $Topic->section->$title_var;
+            } else {
+                $section = $Topic->section->$title_var2;
+            }
+        } catch (Exception $e) {
+            $section = "";
+        }
+
+
+        $webmaster_section_title = "";
+        $category_title = "";
+        $page_title = "";
+        $category_image = "";
+
+        if (@$WebmasterSection != "none") {
+            if (@$WebmasterSection->$title_var != "") {
+                $webmaster_section_title = @$WebmasterSection->$title_var;
+            } else {
+                $webmaster_section_title = @$WebmasterSection->$title_var2;
+            }
+            $page_title = $webmaster_section_title;
+            if (@$WebmasterSection->photo != "") {
+                $category_image = URL::to('uploads/topics/' . @$WebmasterSection->photo);
+            }
+        }
+        if (!empty($CurrentCategory)) {
+            if (@$CurrentCategory->$title_var != "") {
+                $category_title = @$CurrentCategory->$title_var;
+            } else {
+                $category_title = @$CurrentCategory->$title_var2;
+            }
+            $page_title = $category_title;
+            if (@$CurrentCategory->photo != "") {
+                $category_image = URL::to('uploads/sections/' . @$CurrentCategory->photo);
+            }
+        }
+
+        $attach_file = @$Topic->attach_file;
+        if (@$Topic->attach_file != "") {
+            $file_ext = strrchr($Topic->attach_file, ".");
+            $file_ext = strtolower($file_ext);
+            if (in_array($file_ext, [".jpg", ".jpeg", ".png", ".gif", ".webp"])) {
+                $category_image = URL::to('uploads/topics/' . @$Topic->attach_file);
+                $attach_file = "";
+            }
+        }
+        ?>
+    @if($category_image !="")
+    @include("frontEnd.topic.cover")
+    @endif
+    <section class="breadcrumbs">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>{!! (@$WebmasterSection->id ==1)?$title:$page_title !!}</h2>
+                <ol>
+                    <li><a href="{{ Helper::homeURL() }}">{{ __("backend.home") }}</a></li>
+                    @if($webmaster_section_title !="")
+                    <li class="active"><a href="{{ Helper::sectionURL(@$WebmasterSection->id) }}">{!!
+                            (@$WebmasterSection->id ==1)?$title:$webmaster_section_title !!}</a>
+                    </li>
+                    @else
+                    <li class="active">{{ $title }}</li>
+                    @endif
+                    @if($category_title !="")
+                    <li class="active"><a
+                            href="{{ Helper::categoryURL(@$CurrentCategory->id) }}">{{ $category_title }}</a>
+                    </li>
+                    @endif
+                </ol>
+            </div>
+        </div>
+    </section>
+
+    <section id="content">
+        <div class="container topic-page">
+            <div class="row">
+                @if($Categories->count() >1)
+                @include('frontEnd.layouts.side')
+                @endif
+                <div
+                    class="col-lg-{{($Categories->count()>1)? "9":"12"}} col-md-{{($Categories->count()>1)? "7":"12"}} col-sm-12 col-xs-12">
+                    <article class="mb-5">
+                        @if($WebmasterSection->type==2 && $Topic->video_file!="")
+                        {{--video--}}
+                        <div class="post-video">
+                            @if($WebmasterSection->title_status)
+                            <div class="post-heading">
+                                <h1>
+                                    @if($Topic->icon !="")
+                                    <i class="fa {!! $Topic->icon !!} "></i>&nbsp;
+                                    @endif
+                                    {{ $title }}
+                                </h1>
+                            </div>
+                            @endif
+                            <div class="video-container">
+                                @if($Topic->video_type ==1)
+                                <?php
+                                            $Youtube_id = Helper::Get_youtube_video_id($Topic->video_file);
+                                            ?>
+                                @if($Youtube_id !="")
+                                {{-- Youtube Video --}}
+                                <iframe allowfullscreen class="video-iframe"
+                                    src="https://www.youtube.com/embed/{{ $Youtube_id }}?autoplay=1&mute=1"
+                                    allow="autoplay">
+                                </iframe>
+                                @endif
+                                @elseif($Topic->video_type ==2)
+                                <?php
+                                            $Vimeo_id = Helper::Get_vimeo_video_id($Topic->video_file);
+                                            ?>
+                                @if($Vimeo_id !="")
+                                {{-- Vimeo Video --}}
+                                <iframe allowfullscreen class="video-iframe"
+                                    src="https://player.vimeo.com/video/{{ $Vimeo_id }}?title=0&amp;byline=0">
+                                </iframe>
+                                @endif
+
+                                @elseif($Topic->video_type ==3)
+                                @if($Topic->video_file !="")
+
+                                <?php
+                                // Get all embed video topics in the same section
+                                $embedTopics = \App\Models\Topic::where([
+                                    ['webmaster_id', '=', $Topic->webmaster_id],
+                                    ['status', 1],
+                                    ['video_type', 3], // Embed video type
+                                    ['video_file', '!=', ''],
+                                    ['video_file', '!=', null]
+                                ])
+                                ->where(function($query) {
+                                    $query->where([['expire_date', '>=', date("Y-m-d")], ['expire_date', '<>', null]])
+                                          ->orWhere('expire_date', null);
+                                })
+                                ->orderby('row_no', 'asc')
+                                ->get();
+
+                                $currentIndex = -1;
+                                $nextTopic = null;
+                                $prevTopic = null;
+                                
+                                if (count($embedTopics) > 1) {
+                                    foreach ($embedTopics as $index => $embedTopic) {
+                                        if ($embedTopic->id == $Topic->id) {
+                                            $currentIndex = $index;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if ($currentIndex !== -1) {
+                                        // Get next topic (circular)
+                                        $nextIndex = ($currentIndex + 1) % count($embedTopics);
+                                        $nextTopic = $embedTopics[$nextIndex];
+                                        
+                                        // Get previous topic (circular)
+                                        $prevIndex = ($currentIndex - 1 + count($embedTopics)) % count($embedTopics);
+                                        $prevTopic = $embedTopics[$prevIndex];
+                                    }
+                                }
+
+                                // Prepare all embed videos data for JavaScript
+                                $allEmbedVideos = [];
+                                foreach ($embedTopics as $index => $embedTopic) {
+                                    $allEmbedVideos[] = [
+                                        'id' => $embedTopic->id,
+                                        'title' => $embedTopic->$title_var ?: $embedTopic->$title_var2,
+                                        'video' => $embedTopic->video_file,
+                                        'url' => Helper::topicURL($embedTopic->id)
+                                    ];
+                                }
+                                
+                                // Debug: Log the data being passed to JavaScript (commented out for production)
+                                // \Log::info('Embed Videos Data:', $allEmbedVideos);
+                                // \Log::info('Current Index: ' . $currentIndex);
+                                ?>
+
+                                {{-- Embed Video with Reel Styling --}}
+                                <div class="cont">
+                                    <div class="reel-style-container" id="embed-video-container">
+                                        {!! preg_replace('/src="([^"]*)"/', 'src="$1&autoplay=1"', $Topic->video_file)
+                                        !!}
+                                    </div>
+                                    <div class="buttons">
+                                        <button type="button" class="next-btn" id="next-embed-btn">Next</button>
+                                        <button type="button" class="prev-btn" id="prev-embed-btn">Prev</button>
+                                    </div>
+                                </div>
+
+                                <style>
+                                .cont {
+                                    position: relative;
+
+                                }
+
+                                .buttons {
+                                    position: absolute;
+                                    bottom: 0;
+                                    left: 0;
+                                    right: 0;
+                                    display: flex;
+                                    justify-content: space-between;
+                                    padding: 10px;
+                                }
+
+                                .next-btn,
+                                .prev-btn {
+                                    background: rgba(0, 0, 0, 0.7);
+                                    color: white;
+                                    padding: 10px 20px;
+                                    border-radius: 25px;
+                                    cursor: pointer;
+                                    font-size: 14px;
+                                    font-weight: bold;
+                                    transition: all 0.3s ease;
+                                    border: 2px solid rgba(255, 255, 255, 0.3);
+                                    backdrop-filter: blur(10px);
+                                }
+
+                                .next-btn:hover,
+                                .prev-btn:hover {
+                                    background: rgba(255, 255, 255, 0.9);
+                                    color: #000;
+                                    transform: scale(1.05);
+                                    border-color: rgba(255, 255, 255, 0.8);
+                                }
+
+                                .next-btn:active,
+                                .prev-btn:active {
+                                    transform: scale(0.95);
+                                }
+
+                                .reel-style-container {
+                                    max-width: 400px;
+                                    margin: 0 auto;
+                                    border-radius: 15px;
+                                    overflow: hidden;
+                                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                                    background: #000;
+                                    position: relative;
+                                }
+
+                                .reel-style-container iframe,
+                                .reel-style-container video,
+                                .reel-style-container embed,
+                                .reel-style-container object {
+                                    width: 100% !important;
+                                    height: 600px !important;
+                                    border-radius: 15px;
+                                    display: block;
+                                }
+
+                                .reel-style-container::before {
+                                    content: '';
+                                    position: absolute;
+                                    top: 0;
+                                    left: 0;
+                                    right: 0;
+                                    bottom: 0;
+                                    background: linear-gradient(45deg, rgba(240, 148, 51, 0.1) 0%, rgba(230, 104, 60, 0.1) 25%, rgba(220, 39, 67, 0.1) 50%, rgba(204, 35, 102, 0.1) 75%, rgba(188, 24, 136, 0.1) 100%);
+                                    pointer-events: none;
+                                    z-index: 1;
+                                    border-radius: 15px;
+                                }
+
+                                .reel-style-container::after {
+                                    content: 'REEL';
+                                    position: absolute;
+                                    top: 15px;
+                                    left: 15px;
+                                    background: rgba(0, 0, 0, 0.7);
+                                    color: white;
+                                    padding: 6px 12px;
+                                    border-radius: 15px;
+                                    font-size: 11px;
+                                    font-weight: bold;
+                                    z-index: 2;
+                                    pointer-events: none;
+                                }
+                                </style>
+
+                                <script>
+                                // Cache bust: {{ time() }} - Fixed syntax error - VERSION 2.4 - ULTIMATE FIX
+                                // NO CACHE: {{ uniqid() }}
+                                // FORCE RELOAD: {{ md5(time()) }}
+                                console.log('=== EMBED VIDEO SCRIPT STARTING ===');
+                                console.log('Script starting - syntax error fixed...');
+                                console.log('Timestamp:', new Date().toISOString());
+                                console.log('VERSION 2.4 - ULTIMATE FIX - Syntax error MUST be fixed now!');
+                                console.log('UNIQUE ID:', Math.random().toString(36).substr(2, 9));
+                                console.log('CACHE BUSTER:', '{{ time() }}-{{ uniqid() }}');
+                                console.log('DEBUG: Script loaded successfully');
+                                console.log('DEBUG: All variables will be logged below');
+
+                                // Monitor all network requests
+                                const originalFetch = window.fetch;
+                                window.fetch = function(...args) {
+                                    console.log('Fetch request:', args);
+                                    return originalFetch.apply(this, args);
+                                };
+
+                                const originalXHR = window.XMLHttpRequest;
+                                window.XMLHttpRequest = function() {
+                                    const xhr = new originalXHR();
+                                    const originalOpen = xhr.open;
+                                    xhr.open = function(method, url, ...args) {
+                                        console.log('XHR request:', method, url);
+                                        return originalOpen.apply(this, [method, url, ...args]);
+                                    };
+                                    return xhr;
+                                };
+
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    console.log('DOM loaded, starting embed video navigation setup...');
+                                    const nextBtn = document.getElementById('next-embed-btn');
+                                    const prevBtn = document.getElementById('prev-embed-btn');
+                                    const videoContainer = document.getElementById('embed-video-container');
+
+                                    // All embed videos data from server
+                                    const allVideos = @json($allEmbedVideos ?? []);
+                                    let currentVideoIndex = {{ $currentIndex ?? -1 }};
+                                    console.log('FIXED: currentVideoIndex =', currentVideoIndex);
+                                    console.log('FIXED: currentVideoIndex =', currentVideoIndex);
+                                    console.log('DEBUG: currentVideoIndex set to:', currentVideoIndex);
+                                    console.log('Current video index loaded:', currentVideoIndex);
+                                    console.log('DEBUG: Variable type check - currentVideoIndex is:',
+                                        typeof currentVideoIndex);
+                                    console.log('DEBUG: Variable value check - currentVideoIndex equals:',
+                                        currentVideoIndex);
+
+                                    console.log('Raw JSON data:', '@json($allEmbedVideos ?? [])');
+                                    console.log('Parsed allVideos:', allVideos);
+
+                                    console.log('Debug Info:', {
+                                        nextBtn: nextBtn,
+                                        prevBtn: prevBtn,
+                                        videoContainer: videoContainer,
+                                        allVideos: allVideos,
+                                        currentVideoIndex: currentVideoIndex,
+                                        videosLength: allVideos.length
+                                    });
+
+                                    // Visual test - make buttons more visible (commented out for production)
+                                    // if (nextBtn) {
+                                    //     nextBtn.style.border = '3px solid red';
+                                    //     nextBtn.style.backgroundColor = 'yellow';
+                                    // }
+                                    // if (prevBtn) {
+                                    //     prevBtn.style.border = '3px solid blue';
+                                    //     prevBtn.style.backgroundColor = 'lightblue';
+                                    // }
+
+                                    if (nextBtn && prevBtn && videoContainer) {
+                                        console.log('All elements found, setting up navigation...');
+
+                                        if (allVideos.length <= 1) {
+                                            console.log('Only one video available, hiding navigation buttons');
+                                            nextBtn.style.display = 'none';
+                                            prevBtn.style.display = 'none';
+                                            return;
+                                        }
+
+                                        console.log('Multiple videos found, setting up navigation for',
+                                            allVideos.length, 'videos');
+                                        // Add click event for next button
+                                        nextBtn.addEventListener('click', function(event) {
+                                            event.preventDefault();
+                                            event.stopPropagation();
+                                            console.log('Next button clicked!');
+                                            navigateToVideo('next');
+                                        });
+
+                                        // Add click event for previous button
+                                        prevBtn.addEventListener('click', function(event) {
+                                            event.preventDefault();
+                                            event.stopPropagation();
+                                            console.log('Previous button clicked!');
+                                            navigateToVideo('previous');
+                                        });
+
+                                        // Add keyboard navigation
+                                        document.addEventListener('keydown', function(event) {
+                                            if (event.key === 'ArrowRight' || event.key === ' ') {
+                                                event.preventDefault();
+                                                navigateToVideo('next');
+                                            } else if (event.key === 'ArrowLeft') {
+                                                event.preventDefault();
+                                                navigateToVideo('previous');
+                                            }
+                                        });
+
+                                        function navigateToVideo(direction) {
+                                            console.log('DEBUG: navigateToVideo called with direction:',
+                                                direction);
+                                            console.log('DEBUG: Current video index before navigation:',
+                                                currentVideoIndex);
+                                            console.log('DEBUG: Total videos available:', allVideos.length);
+
+                                            // Show loading state
+                                            videoContainer.innerHTML =
+                                                '<div style="display: flex; align-items: center; justify-content: center; height: 600px; background: #000; color: white; font-size: 18px;">Loading...</div>';
+
+                                            // Calculate new index
+                                            let newIndex;
+                                            if (direction === 'next') {
+                                                newIndex = (currentVideoIndex + 1) % allVideos.length;
+                                                console.log('DEBUG: Next navigation - newIndex calculated:',
+                                                    newIndex);
+                                            } else {
+                                                newIndex = (currentVideoIndex - 1 + allVideos.length) %
+                                                    allVideos.length;
+                                                console.log('DEBUG: Previous navigation - newIndex calculated:',
+                                                    newIndex);
+                                            }
+
+                                            // Simulate loading delay for better UX
+                                            setTimeout(() => {
+                                                console.log('DEBUG: setTimeout callback executed');
+                                                console.log('DEBUG: Looking for video at index:',
+                                                    newIndex);
+                                                const newVideo = allVideos[newIndex];
+
+                                                if (!newVideo) {
+                                                    console.error('No video found at index:', newIndex);
+                                                    console.error('DEBUG: allVideos array:', allVideos);
+                                                    return;
+                                                }
+
+                                                console.log('DEBUG: Video found, switching to:',
+                                                    newVideo);
+                                                console.log('DEBUG: Video title:', newVideo.title);
+                                                console.log('DEBUG: Video ID:', newVideo.id);
+
+                                                // Update the video content with auto-play
+                                                let videoHtml = newVideo.video;
+
+                                                console.log('DEBUG: Original video HTML:', videoHtml);
+                                                console.log('DEBUG: Video HTML type:',
+                                                typeof videoHtml);
+                                                console.log('DEBUG: Video HTML length:', videoHtml
+                                                    .length);
+
+                                                // Add autoplay parameter to iframe src
+                                                videoHtml = videoHtml.replace(
+                                                    /src="([^"]*)"/g,
+                                                    function(match, url) {
+                                                        console.log('DEBUG: Processing URL:', url);
+                                                        console.log('DEBUG: URL type:', typeof url);
+                                                        console.log('DEBUG: URL length:', url
+                                                            .length);
+
+                                                        // Check if URL already has parameters
+                                                        const separator = url.includes('?') ? '&' :
+                                                            '?';
+                                                        console.log('DEBUG: URL separator:',
+                                                            separator);
+
+                                                        // For Facebook videos, try multiple autoplay parameters
+                                                        let newUrl = `${url}${separator}autoplay=1`;
+                                                        console.log('DEBUG: Basic autoplay URL:',
+                                                            newUrl);
+
+                                                        // Add additional Facebook-specific parameters
+                                                        if (url.includes('facebook.com')) {
+                                                            newUrl += '&mute=0&autoplay=1&loop=0';
+                                                            console.log(
+                                                                'DEBUG: Facebook video detected, adding additional parameters'
+                                                                );
+                                                            console.log('DEBUG: Facebook URL:',
+                                                                newUrl);
+                                                        }
+
+                                                        console.log('DEBUG: Final modified URL:',
+                                                            newUrl);
+                                                        return `src="${newUrl}"`;
+                                                    }
+                                                );
+
+                                                console.log('DEBUG: Final video HTML with autoplay:',
+                                                    videoHtml);
+                                                console.log('DEBUG: Final HTML length:', videoHtml
+                                                    .length);
+                                                videoContainer.innerHTML = videoHtml;
+
+                                                // Try to trigger autoplay after iframe loads
+                                                setTimeout(() => {
+                                                    console.log(
+                                                        'DEBUG: Autoplay timeout callback executed'
+                                                        );
+                                                    const iframe = videoContainer.querySelector(
+                                                        'iframe');
+                                                    if (iframe) {
+                                                        console.log(
+                                                            'DEBUG: Iframe found, attempting to trigger autoplay'
+                                                            );
+                                                        console.log('DEBUG: Iframe element:',
+                                                            iframe);
+                                                        console.log('DEBUG: Iframe src:', iframe
+                                                            .src);
+                                                        // Try to focus and click the iframe to trigger autoplay
+                                                        iframe.focus();
+                                                        // Some browsers require user interaction for autoplay
+                                                        console.log(
+                                                            'DEBUG: Iframe focused, autoplay should work if browser allows'
+                                                            );
+                                                    } else {
+                                                        console.log(
+                                                            'DEBUG: No iframe found in video container'
+                                                            );
+                                                    }
+                                                }, 1000);
+
+                                                // Update page title
+                                                document.title = newVideo.title;
+                                                console.log('DEBUG: Page title updated to:', newVideo
+                                                    .title);
+
+                                                // Update current index
+                                                currentVideoIndex = newIndex;
+                                                console.log('DEBUG: Current video index updated to:',
+                                                    newIndex);
+
+                                                console.log('DEBUG: Video changed to:', newVideo.title,
+                                                    'Index:', newIndex);
+
+                                                // Update button data attributes for next navigation
+                                                updateButtonData();
+                                                console.log('DEBUG: Button data updated');
+
+                                            }, 500);
+                                        }
+
+                                        function updateButtonData() {
+                                            console.log('DEBUG: updateButtonData called');
+                                            console.log('DEBUG: Current video index:', currentVideoIndex);
+                                            console.log('DEBUG: Total videos:', allVideos.length);
+
+                                            // Calculate next and previous indices
+                                            const nextIndex = (currentVideoIndex + 1) % allVideos.length;
+                                            const prevIndex = (currentVideoIndex - 1 + allVideos.length) %
+                                                allVideos.length;
+
+                                            console.log('DEBUG: Next index calculated:', nextIndex);
+                                            console.log('DEBUG: Previous index calculated:', prevIndex);
+
+                                            const nextVideo = allVideos[nextIndex];
+                                            const prevVideo = allVideos[prevIndex];
+
+                                            console.log('DEBUG: Next video:', nextVideo);
+                                            console.log('DEBUG: Previous video:', prevVideo);
+
+                                            // Update next button
+                                            nextBtn.setAttribute('data-topic-id', nextVideo.id);
+                                            nextBtn.setAttribute('data-topic-title', nextVideo.title);
+                                            nextBtn.setAttribute('data-topic-video', nextVideo.video);
+                                            nextBtn.setAttribute('data-topic-url', nextVideo.url);
+                                            console.log('DEBUG: Next button attributes updated');
+
+                                            // Update previous button
+                                            prevBtn.setAttribute('data-topic-id', prevVideo.id);
+                                            prevBtn.setAttribute('data-topic-title', prevVideo.title);
+                                            prevBtn.setAttribute('data-topic-video', prevVideo.video);
+                                            prevBtn.setAttribute('data-topic-url', prevVideo.url);
+                                            console.log('DEBUG: Previous button attributes updated');
+                                        }
+                                    }
+                                });
+                                </script>
+                                @endif
+
+                                @else
+                                <video class="video-js" controls autoplay preload="auto" width="100%" height="500"
+                                    poster="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}" data-setup="{}">
+                                    <source src="{{ URL::to('uploads/topics/'.$Topic->video_file) }}"
+                                        type="video/mp4" />
+                                    <p class="vjs-no-js">
+                                        To view this video please enable JavaScript, and consider upgrading
+                                        to a
+                                        web browser that
+                                        <a href="https://videojs.com/html5-video-support/" target="_blank">supports
+                                            HTML5 video</a>
+                                    </p>
+                                </video>
+                                @endif
+
+                            </div>
+                        </div>
+                        @elseif($WebmasterSection->type==3 && $Topic->audio_file!="")
+                        {{--audio--}}
+                        <div class="post-audio">
+                            @if($WebmasterSection->title_status)
+                            <div class="post-heading">
+                                <h1>
+                                    @if($Topic->icon !="")
+                                    <i class="fa {!! $Topic->icon !!} "></i>&nbsp;
+                                    @endif
+                                    {{ $title }}
+                                </h1>
+                            </div>
+                            @endif
+                            @if($Topic->photo_file !="")
+                            <img src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}" loading="lazy"
+                                alt="{{ $title }}" />
+                            @endif
+                            <div class="audio-player">
+                                <audio crossorigin preload="none">
+                                    <source src="{{ URL::to('uploads/topics/'.$Topic->audio_file) }}" type="audio/mpeg">
+                                </audio>
+                            </div>
+                        </div>
+                        <br>
+                        @elseif(count($Topic->photos)>0)
+                        {{--photo slider--}}
+                        <div>
+                            @if($WebmasterSection->title_status)
+                            <div class="post-heading" ">
+                                            <h1>
+                                                @if($Topic->icon !="")
+                                                    <i class=" fa {!! $Topic->icon !!} "></i>&nbsp;
+                                @endif
+                                {{ $title }}
+                                </h1>
+                            </div>
+                            @endif
+
+                            @if($Topic->photo_file !="")
+                            <div class="post-image mb-2">
+                                <a href="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}" class="galelry-lightbox"
+                                    title="{{ $title }}">
+                                    <img loading="lazy" src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}"
+                                        alt="{{ $title }}" class="post-main-photo" width="100%" />
+                                </a>
+                            </div>
+                            @endif
+
+                            <div id="gallery" class="gallery line-frame mb-3 post-gallery">
+                                <div class="row g-0 m-0">
+                                    <?php
+                                            $cols_lg = 3;
+                                            $cols_md = 4;
+                                            if ($Categories->count() > 1) {
+                                                $cols_lg = 4;
+                                                $cols_md = 6;
+                                            }
+                                            if ($Topic->photos->count() == 3) {
+                                                $cols_lg = 4;
+                                                $cols_md = 4;
+                                            }
+                                            if ($Topic->photos->count() == 2) {
+                                                $cols_lg = 6;
+                                                $cols_md = 6;
+                                            }
+                                            ?>
+                                    @foreach($Topic->photos as $photo)
+                                    <div class="col-lg-{{ $cols_lg }} col-md-{{ $cols_md }}">
+                                        <div class="gallery-item">
+                                            <a href="{{ URL::to('uploads/topics/'.$photo->file) }}"
+                                                class="galelry-lightbox" title="{{ $photo->title }}">
+                                                <img src="{{ URL::to('uploads/topics/'.$photo->file) }}" loading="lazy"
+                                                    alt="{{ $photo->title }}" class="img-fluid">
+                                            </a>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        @else
+                        {{--one photo--}}
+                        <div class="post-image">
+                            @if($WebmasterSection->title_status)
+                            <div class="post-heading" style="display: block">
+                                <h1>
+                                    @if($Topic->icon !="")
+                                    <i class="fa {!! $Topic->icon !!} "></i>&nbsp;
+                                    @endif
+                                    {{ $title }}
+                                </h1>
+                            </div>
+                            @endif
+                            @if($Topic->photo_file !="")
+
+                            <img src="{{ URL::to('uploads/topics/'.$Topic->photo_file) }}" loading="lazy"
+                                alt="{{ $title }}" title="{{ $title }}" class="post-main-photo" width="100%" />
+
+                            <br>
+                            @endif
+                        </div>
+                        @endif
+
+                        @include("frontEnd.topic.fields",["cols"=>6,"Fields"=>@$Topic->webmasterSection->customFields->where("in_page",true)])
+
+                        <div class="article-body">
+                            {!! str_replace('"#','"'.Request::url().'#',$Topic->$details) !!}
+                        </div>
+
+                        @if($attach_file !="")
+                        <?php
+                                $file_ext = strrchr($Topic->attach_file, ".");
+                                $file_ext = strtolower($file_ext);
+                                ?>
+                        <div class="bottom-article">
+                            <a href="{{ URL::to('uploads/topics/'.$Topic->attach_file) }}" target="_blank">
+                                <strong>
+                                    {!! Helper::GetIcon(URL::to('uploads/topics/'),$Topic->attach_file) !!}
+                                    &nbsp;{{ __('frontend.downloadAttach') }}</strong>
+                            </a>
+                        </div>
+                        @endif
+                    </article>
+                    @include("frontEnd.topic.files")
+
+                    @include("frontEnd.topic.maps")
+
+                    @include("frontEnd.topic.tags")
+
+                    @if($WebmasterSection->type == 7)
+                    <a href="{!! Helper::sectionURL($Topic->webmaster_id) !!}" class="btn btn-lg btn-secondary"
+                        style="width: 100%"><i class="fa-solid fa-reply"></i> {{ __('backend.clickToNewSearch') }}
+                    </a>
+                    @else
+                    @include("frontEnd.topic.share")
+                    @endif
+
+                    @include("frontEnd.topic.comments")
+
+                    @if(@$Topic->form_id >0)
+                    <br>
+                    @include('frontEnd.form',["FormSectionID"=>@$Topic->form_id])
+                    @elseif($WebmasterSection->order_status)
+                    @include("frontEnd.topic.order")
+                    @endif
+
+                    @include("frontEnd.topic.related")
+
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+@include('frontEnd.layouts.popup',['Popup'=>@$Popup])
+@endsection
+@if (@in_array(@$WebmasterSection->type, [2]))
+@push('before-styles')
+<link rel="stylesheet"
+    href="{{ URL::asset('assets/frontend/vendor/video-js/css/video-js.min.css') }}?v={{ Helper::system_version() }}" />
+@endpush
+@push('after-scripts')
+<script src="{{ URL::asset('assets/frontend/vendor/video-js/js/video.min.js') }}?v={{ Helper::system_version() }}">
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof GreenAudioPlayer !== 'undefined') {
+        GreenAudioPlayer.init({
+            selector: '.audio-player',
+            stopOthersOnPlay: true,
+            showTooltips: true,
+        });
+    }
+});
+</script>
+@endpush
+@endif
+@if (@in_array(@$WebmasterSection->type, [3]))
+@push('before-styles')
+<link rel="stylesheet"
+    href="{{ URL::asset('assets/frontend/vendor/green-audio-player/css/green-audio-player.min.css') }}?v={{ Helper::system_version() }}" />
+@endpush
+@push('after-scripts')
+<script
+    src="{{ URL::asset('assets/frontend/vendor/green-audio-player/js/green-audio-player.min.js') }}?v={{ Helper::system_version() }}">
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof GreenAudioPlayer !== 'undefined') {
+        GreenAudioPlayer.init({
+            selector: '.audio-player',
+            stopOthersOnPlay: true,
+            showTooltips: true,
+        });
+    }
+});
+</script>
+@endpush
+@endif
