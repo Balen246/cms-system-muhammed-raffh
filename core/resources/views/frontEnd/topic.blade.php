@@ -411,7 +411,7 @@
                                 .reel-style-container embed,
                                 .reel-style-container object {
                                     width: 100% !important;
-                                    height: 600px !important;
+                                    height: 710px !important;
                                     border-radius: 15px;
                                     display: block;
                                 }
@@ -423,7 +423,7 @@
                                     .reel-style-container embed,
                                     .reel-style-container object {
                                         width: 100% !important;
-                                        height: 450px !important;
+                                        height: 530px !important;
                                         border-radius: 15px !important;
                                         display: block !important;
                                         visibility: visible !important;
@@ -561,21 +561,26 @@
                                             currentVideo.style.opacity = '0';
                                         }
 
-                                        // Show loading spinner with animation
+                                        // Show loading overlay without changing container size
                                         setTimeout(() => {
-                                            const loadingHTML = `
-                                                <div style="display: flex; align-items: center; justify-content: center; height: 600px; background: #000; color: white; flex-direction: column;">
-                                                    <div style="width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid #1877f2; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
-                                                    <div style="font-size: 16px; color: #ccc;">Loading video...</div>
-                                                </div>
-                                                <style>
-                                                    @keyframes spin {
-                                                        0% { transform: rotate(0deg); }
-                                                        100% { transform: rotate(360deg); }
-                                                    }
-                                                </style>
-                                            `;
-                                            safeUpdateVideoContent(videoContainer, loadingHTML);
+                                            const currentHeight = videoContainer.clientHeight || (window.matchMedia('(max-width: 768px)').matches ? 530 : 710);
+                                            videoContainer.style.height = currentHeight + 'px';
+                                            videoContainer.style.position = 'relative';
+                                            const overlay = document.createElement('div');
+                                            overlay.className = 'reel-loading-overlay';
+                                            overlay.setAttribute('aria-hidden', 'true');
+                                            overlay.style.position = 'absolute';
+                                            overlay.style.inset = '0';
+                                            overlay.style.display = 'flex';
+                                            overlay.style.alignItems = 'center';
+                                            overlay.style.justifyContent = 'center';
+                                            overlay.style.background = '#000';
+                                            overlay.style.zIndex = '2';
+                                            overlay.innerHTML = '<div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.3);border-top:4px solid #1877f2;border-radius:50%;animation:spin 1s linear infinite;"></div>' +
+                                                '<style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>';
+                                            // Remove existing children but keep container dimensions
+                                            while (videoContainer.firstChild) { videoContainer.removeChild(videoContainer.firstChild); }
+                                            videoContainer.appendChild(overlay);
                                         }, 300);
 
                                         // Update video after delay with smooth entrance animation
@@ -585,6 +590,10 @@
                                                 safeUpdateVideoContent(videoContainer, newVideo.video, direction);
                                                 document.title = newVideo.title;
                                                 currentVideoIndex = newIndex;
+                                                // Clear loading overlay and restore auto height
+                                                const loader = videoContainer.querySelector('.reel-loading-overlay');
+                                                if (loader) { try { videoContainer.removeChild(loader); } catch (_) {} }
+                                                videoContainer.style.height = '';
 
                                                 // Re-initialize Facebook plugins if needed
                                                 if (typeof FB !== 'undefined' && FB.XFBML) {
