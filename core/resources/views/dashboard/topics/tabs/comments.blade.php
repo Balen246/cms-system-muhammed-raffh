@@ -159,8 +159,6 @@
                             <th>{{ __('backend.topicCommentName') }}</th>
                             <th>{{ __('backend.topicComment') }}</th>
                             <th class="text-center"
-                                style="width:50px;">{{ __('backend.status') }}</th>
-                            <th class="text-center"
                                 style="width:200px;">{{ __('backend.options') }}</th>
                         </tr>
                         </thead>
@@ -188,10 +186,6 @@
                                     <div>
                                         <small>{{ $comment->comment }}</small>
                                     </div>
-                                </td>
-
-                                <td class="text-center">
-                                    <i class="fa {{ ($comment->status==1) ? "fa-check text-success":"fa-times text-danger" }} inline"></i>
                                 </td>
                                 <td class="text-center">
                                     <a class="btn btn-sm success"

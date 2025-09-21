@@ -20,6 +20,7 @@ use App\Models\Webmail;
 use App\Models\Language;
 use App\Models\WebmasterSection;
 use App\Models\WebmasterSetting;
+use App\Models\SocialLink;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -1267,6 +1268,10 @@ class Helper
         return $ColsList;
     }
 
+    static function getSocialLinks()
+    {
+        return SocialLink::active()->ordered()->get();
+    }
 }
 
 ?>

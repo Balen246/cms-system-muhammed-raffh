@@ -1,6 +1,6 @@
 @if($WebmasterSection->comments_status)
     <div id="comments">
-        @if(count($Topic->approvedComments)>0)
+        <!-- @if(count($Topic->approvedComments)>0)
             <div class="row">
                 <div class="col-lg-12">
                     <h3 class="mb-3 mt-4"><i
@@ -30,7 +30,7 @@
                     </div>
                 @endforeach
             </div>
-        @endif
+        @endif -->
 
         <div class="row">
             <div class="col-lg-12">

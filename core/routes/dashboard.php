@@ -7,6 +7,7 @@ use App\Http\Controllers\Dashboard\WebmasterSettingsController;
 use App\Http\Controllers\Dashboard\WebmasterBannersController;
 use App\Http\Controllers\Dashboard\WebmasterSectionsController;
 use App\Http\Controllers\Dashboard\SettingsController;
+use App\Http\Controllers\Dashboard\SocialLinksController;
 use App\Http\Controllers\Dashboard\BannersController;
 use App\Http\Controllers\Dashboard\CategoriesController;
 use App\Http\Controllers\Dashboard\TopicsController;
@@ -68,6 +69,14 @@ Route::post('/modules/{webmasterId}/fields/updateAll', [WebmasterSectionsControl
 // Settings
 Route::get('/settings', [SettingsController::class, 'edit'])->name('settings');
 Route::post('/settings', [SettingsController::class, 'updateSiteInfo'])->name('settingsUpdateSiteInfo');
+
+// Social Links
+Route::get('/social-links', [SocialLinksController::class, 'index'])->name('socialLinks.index');
+Route::post('/social-links', [SocialLinksController::class, 'store'])->name('socialLinks.store');
+Route::put('/social-links/{id}', [SocialLinksController::class, 'update'])->name('socialLinks.update');
+Route::delete('/social-links/{id}', [SocialLinksController::class, 'destroy'])->name('socialLinks.destroy');
+Route::post('/social-links/update-order', [SocialLinksController::class, 'updateOrder'])->name('socialLinks.updateOrder');
+Route::post('/social-links/{id}/toggle-status', [SocialLinksController::class, 'toggleStatus'])->name('socialLinks.toggleStatus');
 
 // Ad. Banners
 Route::get('/banners', [BannersController::class, 'index'])->name('Banners');

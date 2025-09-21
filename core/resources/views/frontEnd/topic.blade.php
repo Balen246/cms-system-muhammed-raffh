@@ -3,6 +3,10 @@
 @section('content')
 <div>
     <?php
+
+use App\Helpers\Helper;
+use Illuminate\Support\Facades\URL;
+
         $title_var = "title_" . @Helper::currentLanguage()->code;
         $title_var2 = "title_" . config('smartend.default_language');
         $details_var = "details_" . @Helper::currentLanguage()->code;
@@ -368,7 +372,7 @@
                                 }
 
                                 /* Animation styles for smooth transitions */
-                                .reel-style-container > * {
+                                .reel-style-container>* {
                                     transition: transform 0.5s ease-in-out, opacity 0.3s ease-in-out;
                                 }
 
@@ -418,6 +422,7 @@
 
                                 /* Mobile iframe fixes - same functionality, better display */
                                 @media (max-width: 768px) {
+
                                     .reel-style-container iframe,
                                     .reel-style-container video,
                                     .reel-style-container embed,
@@ -472,7 +477,9 @@
 
                                     // Get video data from server
                                     const allVideos = @json($allEmbedVideos ?? []);
-                                    let currentVideoIndex = {{ $currentIndex ?? -1 }};
+                                    let currentVideoIndex = {{ $currentIndex ?? 1}};
+
+
 
                                     // Validate current index
                                     if (currentVideoIndex < 0 || currentVideoIndex >= allVideos.length) {
@@ -552,7 +559,8 @@
                                         // Add exit animation to current video
                                         const currentVideo = videoContainer.firstElementChild;
                                         if (currentVideo) {
-                                            currentVideo.style.transition = 'transform 0.3s ease-in-out, opacity 0.3s ease-in-out';
+                                            currentVideo.style.transition =
+                                                'transform 0.3s ease-in-out, opacity 0.3s ease-in-out';
                                             if (direction === 'next') {
                                                 currentVideo.style.transform = 'translateX(-100%)';
                                             } else {
@@ -563,7 +571,9 @@
 
                                         // Show loading overlay without changing container size
                                         setTimeout(() => {
-                                            const currentHeight = videoContainer.clientHeight || (window.matchMedia('(max-width: 768px)').matches ? 530 : 710);
+                                            const currentHeight = videoContainer.clientHeight || (window
+                                                .matchMedia('(max-width: 768px)').matches ? 530 :
+                                                710);
                                             videoContainer.style.height = currentHeight + 'px';
                                             videoContainer.style.position = 'relative';
                                             const overlay = document.createElement('div');
@@ -576,10 +586,13 @@
                                             overlay.style.justifyContent = 'center';
                                             overlay.style.background = '#000';
                                             overlay.style.zIndex = '2';
-                                            overlay.innerHTML = '<div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.3);border-top:4px solid #1877f2;border-radius:50%;animation:spin 1s linear infinite;"></div>' +
+                                            overlay.innerHTML =
+                                                '<div style="width:50px;height:50px;border:4px solid rgba(255,255,255,0.3);border-top:4px solid #1877f2;border-radius:50%;animation:spin 1s linear infinite;"></div>' +
                                                 '<style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>';
                                             // Remove existing children but keep container dimensions
-                                            while (videoContainer.firstChild) { videoContainer.removeChild(videoContainer.firstChild); }
+                                            while (videoContainer.firstChild) {
+                                                videoContainer.removeChild(videoContainer.firstChild);
+                                            }
                                             videoContainer.appendChild(overlay);
                                         }, 300);
 
@@ -587,12 +600,18 @@
                                         setTimeout(() => {
                                             const newVideo = allVideos[newIndex];
                                             if (newVideo) {
-                                                safeUpdateVideoContent(videoContainer, newVideo.video, direction);
+                                                safeUpdateVideoContent(videoContainer, newVideo.video,
+                                                    direction);
                                                 document.title = newVideo.title;
                                                 currentVideoIndex = newIndex;
                                                 // Clear loading overlay and restore auto height
-                                                const loader = videoContainer.querySelector('.reel-loading-overlay');
-                                                if (loader) { try { videoContainer.removeChild(loader); } catch (_) {} }
+                                                const loader = videoContainer.querySelector(
+                                                    '.reel-loading-overlay');
+                                                if (loader) {
+                                                    try {
+                                                        videoContainer.removeChild(loader);
+                                                    } catch (_) {}
+                                                }
                                                 videoContainer.style.height = '';
 
                                                 // Re-initialize Facebook plugins if needed
