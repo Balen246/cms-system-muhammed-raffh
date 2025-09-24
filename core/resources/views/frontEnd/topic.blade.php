@@ -877,19 +877,6 @@ use Illuminate\Support\Facades\URL;
                             {!! str_replace('"#','"'.Request::url().'#',$Topic->$details) !!}
                         </div>
 
-                        @if($attach_file !="")
-                        <?php
-                                $file_ext = strrchr($Topic->attach_file, ".");
-                                $file_ext = strtolower($file_ext);
-                                ?>
-                        <div class="bottom-article">
-                            <a href="{{ URL::to('uploads/topics/'.$Topic->attach_file) }}" target="_blank">
-                                <strong>
-                                    {!! Helper::GetIcon(URL::to('uploads/topics/'),$Topic->attach_file) !!}
-                                    &nbsp;{{ __('frontend.downloadAttach') }}</strong>
-                            </a>
-                        </div>
-                        @endif
                     </article>
                     @include("frontEnd.topic.files")
 

@@ -11,11 +11,11 @@
 {{--            </div>--}}
 {{--        @endforeach--}}
 
-        <div class="form-group">
+        <!-- <div class="form-group">
             <label>{!!  __('backend.contactPhone') !!}</label>
             {!! Form::text('contact_t3',$Setting->contact_t3, array('placeholder' => __('backend.contactPhone'),'class' => 'form-control', 'dir'=>'ltr')) !!}
         </div>
-{{--        <div class="form-group">--}}
+{{--        <div class="form-group">--}} -->
 {{--            <label>{!!  __('backend.contactFax') !!}</label>--}}
 {{--            {!! Form::text('contact_t4',$Setting->contact_t4, array('placeholder' => __('backend.contactFax'),'class' => 'form-control', 'dir'=>'ltr')) !!}--}}
 {{--        </div>--}}

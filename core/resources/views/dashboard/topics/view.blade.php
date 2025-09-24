@@ -494,26 +494,6 @@ if ($WebmasterSection->$title_var != "") {
                     <br>
                     {!! $Topic->$details !!}
 
-                    @if($Topic->attach_file !="")
-                        <?php
-                        $file_ext = strrchr($Topic->attach_file, ".");
-                        $file_ext = strtolower($file_ext);
-                        ?>
-                        <div class="bottom-article">
-                            @if($file_ext ==".jpg"|| $file_ext ==".jpeg"|| $file_ext ==".png"|| $file_ext ==".gif")
-                                <div class="text-center">
-                                    <img src="{{ URL::to('uploads/topics/'.$Topic->attach_file) }}"
-                                         alt="{{ $title }}"/>
-                                </div>
-                            @else
-                                <a href="{{ URL::to('uploads/topics/'.$Topic->attach_file) }}">
-                                    <strong>
-                                        {!! Helper::GetIcon(URL::to('uploads/topics/'),$Topic->attach_file) !!}
-                                        &nbsp;{{ __('frontend.downloadAttach') }}</strong>
-                                </a>
-                            @endif
-                        </div>
-                    @endif
 
                     {{-- Show Additional attach files --}}
                     @if(count($Topic->attachFiles)>0)

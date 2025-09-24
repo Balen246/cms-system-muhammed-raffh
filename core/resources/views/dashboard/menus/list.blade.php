@@ -183,11 +183,22 @@
                         </div>
                         @if($Menus->total() >0)
                             <div class="row p-a">
-                                <div class="col-sm-12">
+                                <div class="col-sm-6">
                                     <a class="btn btn-fw primary" href="{{route("menusCreate",$edt_id)}}">
                                         <i class="material-icons">&#xe02e;</i>
                                         &nbsp; {{ __('backend.newLink') }}
                                     </a>
+                                </div>
+                                <div class="col-sm-6 text-right">
+                                    <button type="button" id="enable-menu-reorder" class="btn btn-sm btn-info">
+                                        <i class="fa fa-arrows"></i> {{ __('backend.saveOrder') }} (Drag Mode)
+                                    </button>
+                                    <button type="button" id="save-menu-reorder" class="btn btn-sm btn-primary" style="display:none;">
+                                        <i class="fa fa-save"></i> {{ __('backend.apply') }}
+                                    </button>
+                                    <button type="button" id="cancel-menu-reorder" class="btn btn-sm btn-default" style="display:none;">
+                                        <i class="fa fa-times"></i> {{ __('backend.cancel') }}
+                                    </button>
                                 </div>
                             </div>
                         @endif
@@ -399,6 +410,7 @@
     </div>
 @endsection
 @push("after-scripts")
+    <script src="{{ asset('assets/dashboard/js/jquery-ui/jquery-ui.min.js') }}"></script>
     <script type="text/javascript">
         $("#checkAll").click(function () {
             $('input:checkbox').not(this).prop('checked', this.checked);
@@ -412,6 +424,55 @@
                 $("#submit_show_msg").css("display", "none");
             }
         });
+
+        // Drag & Drop reordering for Site Menus
+        (function(){
+            var reorderEnabled = false;
+            var $form = $('#menusUpdateAll');
+            function enableSortable(){
+                if (reorderEnabled) return;
+                reorderEnabled = true;
+                $('#enable-menu-reorder').hide();
+                $('#save-menu-reorder, #cancel-menu-reorder').show();
+                // Only sort top-level rows in current page (keeps hierarchy order for subitems as they appear)
+                $('.table tbody').sortable({
+                    helper: function(e, ui){
+                        ui.children().each(function(){ $(this).width($(this).width()); });
+                        return ui;
+                    },
+                    cursor: 'move',
+                    axis: 'y'
+                }).disableSelection();
+            }
+            function disableSortable(){
+                if (!reorderEnabled) return;
+                reorderEnabled = false;
+                $('#enable-menu-reorder').show();
+                $('#save-menu-reorder, #cancel-menu-reorder').hide();
+                try { $('.table tbody').sortable('destroy'); } catch(e){}
+            }
+            $('#enable-menu-reorder').on('click', enableSortable);
+            $('#cancel-menu-reorder').on('click', disableSortable);
+            $('#save-menu-reorder').on('click', function(){
+                if (!reorderEnabled) return;
+                // Clear auto-added row_no inputs we'll add now
+                $form.find("input[name^='row_no_']").remove();
+                var orderNo = 1;
+                $('.table tbody > tr').each(function(){
+                    var $hiddenId = $(this).find("input[name='row_ids[]']");
+                    if ($hiddenId.length){
+                        var id = $hiddenId.val();
+                        $('<input type="hidden"/>')
+                            .attr('name','row_no_' + id)
+                            .val(orderNo)
+                            .appendTo($form);
+                        orderNo++;
+                    }
+                });
+                $('#action').val('order');
+                $form.trigger('submit');
+            });
+        })();
     </script>
 @endpush
 

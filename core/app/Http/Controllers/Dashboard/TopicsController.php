@@ -542,14 +542,16 @@ class TopicsController extends Controller
         $WebmasterSection = WebmasterSection::find($webmasterId);
         if (!empty($WebmasterSection)) {
             //
-
-            // validate required  custom fields
-            $validate_inputs = [
-                'photo_file' => 'image',
-                'audio_file' => 'mimes:mpga,wav,mp3',
-                'video_file' => 'mimes:mp4,ogv,webm',
-                'attach_file' => 'mimes:' . $this->allowed_file_types
-            ];
+            // Initialize to avoid undefined variable in any legacy references
+            $attachFileFinalName = "";
+             
+             // validate required  custom fields
+             $validate_inputs = [
+                 'photo_file' => 'image',
+                 'audio_file' => 'mimes:mpga,wav,mp3',
+                 'video_file' => 'mimes:mp4,ogv,webm',
+                 'attach_file' => 'mimes:' . $this->allowed_file_types
+             ];
 
             // validate required  custom fields
             $CustomFields = $WebmasterSection->customFields;
@@ -600,16 +602,23 @@ class TopicsController extends Controller
                 $request->file($formFileName)->move($path, $audioFileFinalName);
             }
 
-            $formFileName = "attach_file";
-            $attachFileFinalName = "";
-            if ($request->$formFileName != "") {
-                $attachFileFinalName = time() . rand(1111, 9999) . '.' . $request->file($formFileName)->getClientOriginalExtension();
-                $path = $this->uploadPath;
-                $request->file($formFileName)->move($path, $attachFileFinalName);
+            // Handle multiple attach files
+            $attachFiles = [];
+            if ($request->hasFile('attach_files')) {
+                $files = $request->file('attach_files');
+                foreach ($files as $file) {
+                    if ($file) {
+                        $attachFileFinalName = time() . rand(1111, 9999) . '.' . $file->getClientOriginalExtension();
+                        $path = $this->uploadPath;
+                        $file->move($path, $attachFileFinalName);
 
-                // resize & optimize
-                Helper::imageResize($path . $attachFileFinalName);
-                Helper::imageOptimize($path . $attachFileFinalName);
+                        // resize & optimize
+                        Helper::imageResize($path . $attachFileFinalName);
+                        Helper::imageOptimize($path . $attachFileFinalName);
+                        
+                        $attachFiles[] = $attachFileFinalName;
+                    }
+                }
             }
 
             if ($request->video_type == 3) {
@@ -683,6 +692,28 @@ class TopicsController extends Controller
                 $Topic->status = 0;
             }
             $Topic->save();
+
+            // Create AttachFile records for multiple attach files
+            if (!empty($attachFiles)) {
+                $next_nor_no = 1;
+                foreach ($attachFiles as $attachFile) {
+                    $AttachFile = new AttachFile;
+                    $AttachFile->topic_id = $Topic->id;
+                    $AttachFile->row_no = $next_nor_no;
+                    
+                    // Use filename as title for each language
+                    foreach (Helper::languagesList() as $ActiveLanguage) {
+                        if ($ActiveLanguage->box_status) {
+                            $AttachFile->{"title_" . $ActiveLanguage->code} = $attachFile;
+                        }
+                    }
+                    
+                    $AttachFile->file = $attachFile;
+                    $AttachFile->created_by = Auth::user()->id;
+                    $AttachFile->save();
+                    $next_nor_no++;
+                }
+            }
 
             if ($request->section_id != "" && $request->section_id != 0) {
                 // Save categories
@@ -831,6 +862,8 @@ class TopicsController extends Controller
             $Topic = Topic::find($id);
             if (!empty($Topic)) {
 
+                // Initialize to avoid undefined variable in any legacy references
+                $attachFileFinalName = "";
 
                 // validate required  custom fields
                 $validate_inputs = [
@@ -893,21 +926,23 @@ class TopicsController extends Controller
                     $request->file($formFileName)->move($path, $audioFileFinalName);
                 }
 
-                $formFileName = "attach_file";
-                $attachFileFinalName = "";
-                if ($request->$formFileName != "") {
-                    // Delete file if there is a new one
-                    if ($Topic->$formFileName != "" && $Topic->$formFileName != "default.png") {
-                        File::delete($this->uploadPath . $Topic->$formFileName);
-                    }
-                    $attachFileFinalName = time() . rand(1111,
-                            9999) . '.' . $request->file($formFileName)->getClientOriginalExtension();
-                    $path = $this->uploadPath;
-                    $request->file($formFileName)->move($path, $attachFileFinalName);
+                // Handle multiple attach files
+                $attachFiles = [];
+                if ($request->hasFile('attach_files')) {
+                    $files = $request->file('attach_files');
+                    foreach ($files as $file) {
+                        if ($file) {
+                            $attachFileFinalName = time() . rand(1111, 9999) . '.' . $file->getClientOriginalExtension();
+                            $path = $this->uploadPath;
+                            $file->move($path, $attachFileFinalName);
 
-                    // resize & optimize
-                    Helper::imageResize($path . $attachFileFinalName);
-                    Helper::imageOptimize($path . $attachFileFinalName);
+                            // resize & optimize
+                            Helper::imageResize($path . $attachFileFinalName);
+                            Helper::imageOptimize($path . $attachFileFinalName);
+                            
+                            $attachFiles[] = $attachFileFinalName;
+                        }
+                    }
                 }
 
                 if ($request->video_type == 3) {
@@ -987,6 +1022,34 @@ class TopicsController extends Controller
                 $Topic->popup_id = $request->popup_id;
                 $Topic->updated_by = Auth::user()->id;
                 $Topic->save();
+
+                // Create AttachFile records for multiple attach files
+                if (!empty($attachFiles)) {
+                    $next_nor_no = AttachFile::where('topic_id', '=', $Topic->id)->max('row_no');
+                    if ($next_nor_no < 1) {
+                        $next_nor_no = 1;
+                    } else {
+                        $next_nor_no++;
+                    }
+                    
+                    foreach ($attachFiles as $attachFile) {
+                        $AttachFile = new AttachFile;
+                        $AttachFile->topic_id = $Topic->id;
+                        $AttachFile->row_no = $next_nor_no;
+                        
+                        // Use filename as title for each language
+                        foreach (Helper::languagesList() as $ActiveLanguage) {
+                            if ($ActiveLanguage->box_status) {
+                                $AttachFile->{"title_" . $ActiveLanguage->code} = $attachFile;
+                            }
+                        }
+                        
+                        $AttachFile->file = $attachFile;
+                        $AttachFile->created_by = Auth::user()->id;
+                        $AttachFile->save();
+                        $next_nor_no++;
+                    }
+                }
 
                 // Remove old categories
                 TopicCategory::where('topic_id', $Topic->id)->delete();
@@ -1152,6 +1215,7 @@ class TopicsController extends Controller
                         $NewTopic->audio_file = $new_file_name;
                     }
                 }
+                // Legacy single attachment skipped in clone; additional files handled via AttachFile records
                 if ($Topic->attach_file != "") {
                     $new_file_name = "c" . $Topic->attach_file;
                     $copied = File::copy($path . $Topic->attach_file, $path . $new_file_name);
@@ -2064,20 +2128,14 @@ class TopicsController extends Controller
         if (!empty($WebmasterSection)) {
             //
             $this->validate($request, [
-                'file' => 'required|mimes:' . $this->allowed_file_types
+                'files' => 'required|array',
+                'files.*' => 'mimes:' . $this->allowed_file_types
             ]);
 
-            // Start of Upload Files
-            $formFileName = "file";
-            $fileFinalName = "";
-            if ($request->$formFileName != "") {
-                $fileFinalName = time() . rand(1111,
-                        9999) . '.' . $request->file($formFileName)->getClientOriginalExtension();
-                $path = $this->uploadPath;
-                $request->file($formFileName)->move($path, $fileFinalName);
-            }
-            if ($fileFinalName != "") {
-
+            $uploadedFiles = [];
+            $files = $request->file('files');
+            
+            if ($files && count($files) > 0) {
                 $next_nor_no = AttachFile::where('topic_id', '=', $id)->max('row_no');
                 if ($next_nor_no < 1) {
                     $next_nor_no = 1;
@@ -2085,23 +2143,46 @@ class TopicsController extends Controller
                     $next_nor_no++;
                 }
 
-                $AttachFile = new AttachFile;
-                $AttachFile->topic_id = $id;
-                $AttachFile->row_no = $next_nor_no;
-                foreach (Helper::languagesList() as $ActiveLanguage) {
-                    if ($ActiveLanguage->box_status) {
-                        $AttachFile->{"title_" . $ActiveLanguage->code} = strip_tags($request->{"title_" . $ActiveLanguage->code});
+                foreach ($files as $file) {
+                    if ($file) {
+                        $fileFinalName = time() . rand(1111, 9999) . '.' . $file->getClientOriginalExtension();
+                        $path = $this->uploadPath;
+                        $file->move($path, $fileFinalName);
+
+                        $AttachFile = new AttachFile;
+                        $AttachFile->topic_id = $id;
+                        $AttachFile->row_no = $next_nor_no;
+                        
+                        // Use original filename as title if no custom title provided, or append filename to custom title
+                        foreach (Helper::languagesList() as $ActiveLanguage) {
+                            if ($ActiveLanguage->box_status) {
+                                $customTitle = strip_tags($request->{"title_" . $ActiveLanguage->code});
+                                if (!empty($customTitle)) {
+                                    // If custom title provided, use it with filename
+                                    $AttachFile->{"title_" . $ActiveLanguage->code} = $customTitle . ' - ' . $file->getClientOriginalName();
+                                } else {
+                                    // If no custom title, use original filename
+                                    $AttachFile->{"title_" . $ActiveLanguage->code} = $file->getClientOriginalName();
+                                }
+                            }
+                        }
+                        
+                        $AttachFile->file = $fileFinalName;
+                        $AttachFile->created_by = Auth::user()->id;
+                        $AttachFile->save();
+                        
+                        $uploadedFiles[] = $fileFinalName;
+                        $next_nor_no++;
                     }
                 }
-                $AttachFile->file = $fileFinalName;
-                $AttachFile->created_by = Auth::user()->id;
-                $AttachFile->save();
 
-                return redirect()->action('Dashboard\TopicsController@edit', [$webmasterId, $id])->with('doneMessage',
-                    __('backend.saveDone'))->with('activeTab', 'files');
-            } else {
-                return redirect()->action('Dashboard\TopicsController@edit', [$webmasterId, $id])->with('activeTab', 'files');
+                if (count($uploadedFiles) > 0) {
+                    $message = count($uploadedFiles) . ' file(s) uploaded successfully';
+                    return redirect()->action('Dashboard\TopicsController@edit', [$webmasterId, $id])->with('doneMessage', $message)->with('activeTab', 'files');
+                }
             }
+            
+            return redirect()->action('Dashboard\TopicsController@edit', [$webmasterId, $id])->with('activeTab', 'files');
         } else {
             return redirect()->route('NotFound');
         }

@@ -397,8 +397,15 @@ $PhoneFieldsIds = [];
             <div class="form-group row">
                 <label for="attach_file" class="col-sm-2 form-control-label">{!! __('backend.topicAttach') !!}</label>
                 <div class="col-sm-10">
-                    {!! Form::file('attach_file', array('class' =>
-                    'form-control','id'=>'attach_file','accept'=>".".@str_replace(",",",.",@$allowed_file_types))) !!}
+                    {!! Form::file('attach_files[]', array('class' =>
+                    'form-control','id'=>'attach_file','accept'=>".".@str_replace(",",",.",@$allowed_file_types),'multiple'=>'multiple')) !!}
+                    <small class="form-text text-muted">
+                        <i class="fa fa-info-circle"></i> You can select multiple files at once (Ctrl+Click or Cmd+Click)
+                    </small>
+                    <div id="main-file-list" class="mt-2" style="display: none;">
+                        <strong>Selected files:</strong>
+                        <ul id="main-file-names" class="list-unstyled mt-1"></ul>
+                    </div>
                 </div>
             </div>
             @endif
@@ -885,9 +892,34 @@ $PhoneFieldsIds = [];
 
                     {{Form::close()}}
                 </div>
-            </div>
         </div>
-        @endsection
+    </div>
+@endsection
+
+@push('after-scripts')
+<script>
+$(document).ready(function() {
+    $('#attach_file').on('change', function() {
+        var files = this.files;
+        var fileList = $('#main-file-list');
+        var fileNames = $('#main-file-names');
+        
+        if (files.length > 0) {
+            fileList.show();
+            fileNames.empty();
+            
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                var fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                fileNames.append('<li><i class="fa fa-file"></i> ' + file.name + ' <small class="text-muted">(' + fileSize + ')</small></li>');
+            }
+        } else {
+            fileList.hide();
+        }
+    });
+});
+</script>
+@endpush
         @push('before-styles')
         @if(count($PhoneFieldsIds) >0)
         <link rel="stylesheet"

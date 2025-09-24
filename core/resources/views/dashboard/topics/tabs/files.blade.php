@@ -15,7 +15,7 @@
                                         class="col-sm-2 form-control-label">{!!  __('backend.topicName') !!} {!! @Helper::languageName($ActiveLanguage) !!}
                                     </label>
                                     <div class="col-sm-10">
-                                        {!! Form::text('title_'.@$ActiveLanguage->code,'', array('placeholder' => '','class' => 'form-control','required'=>'','maxlength'=>191, 'dir'=>@$ActiveLanguage->direction)) !!}
+                                        {!! Form::text('title_'.@$ActiveLanguage->code,'', array('placeholder' => 'Leave empty to use filename as title','class' => 'form-control','maxlength'=>191, 'dir'=>@$ActiveLanguage->direction)) !!}
                                     </div>
                                 </div>
                             @endif
@@ -25,7 +25,14 @@
                             <label for="files_file"
                                    class="col-sm-2 form-control-label">{!!  __('backend.topicAttach') !!}</label>
                             <div class="col-sm-10">
-                                {!! Form::file('file', array('class' => 'form-control','id'=>'attach_file','required'=>'','accept'=>".".@str_replace(",",",.",@$allowed_file_types))) !!}
+                                {!! Form::file('files[]', array('class' => 'form-control','id'=>'attach_files','required'=>'','accept'=>".".@str_replace(",",",.",@$allowed_file_types),'multiple'=>'multiple')) !!}
+                                <small class="form-text text-muted">
+                                    <i class="fa fa-info-circle"></i> You can select multiple files at once (Ctrl+Click or Cmd+Click)
+                                </small>
+                                <div id="file-list" class="mt-2" style="display: none;">
+                                    <strong>Selected files:</strong>
+                                    <ul id="file-names" class="list-unstyled mt-1"></ul>
+                                </div>
                             </div>
                         </div>
 
@@ -85,6 +92,121 @@
 
                         {{Form::close()}}
                     </div>
+                    {{-- Show current attached files list even while in edit mode --}}
+                    @if(count($Topic->attachFiles)>0)
+                        <hr>
+                        <h6 class="m-b">{{ __('backend.topicAttach') }} ({{ $Topic->attachFiles->count() }})</h6>
+                        {{Form::open(['route'=>['topicsFilesUpdateAll',$WebmasterSection->id,$Topic->id],'method'=>'post'])}}
+                        <table class="table table-bordered">
+                            <thead class="dker">
+                            <tr>
+                                <th class="width20 dker">
+                                    <label class="ui-check m-a-0">
+                                        <input id="checkAll4" type="checkbox"><i></i>
+                                    </label>
+                                </th>
+                                <th>{{ __('backend.topicAttach') }}</th>
+                                <th>{{ __('backend.topicName') }}</th>
+                                <th class="text-center"
+                                    style="width:200px;">{{ __('backend.options') }}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php
+                            $title_var = "title_" . @Helper::currentLanguage()->code;
+                            $title_var2 = "title_" . config('smartend.default_language');
+                            ?>
+                            @foreach($Topic->attachFiles as $file)
+                                <?php
+                                if ($file->$title_var != "") {
+                                    $file_title = $file->$title_var;
+                                } else {
+                                    $file_title = $file->$title_var2;
+                                }
+                                ?>
+                                <tr>
+                                    <td class="dker"><label class="ui-check m-a-0">
+                                            <input type="checkbox" name="ids[]"
+                                                   value="{{ $file->id }}"><i
+                                                class="dark-white"></i>
+                                            {!! Form::hidden('row_ids[]',$file->id, array('class' => 'form-control row_no')) !!}
+                                        </label>
+                                    </td>
+                                    <td>
+                                        {!! Form::text('row_no_'.$file->id,$file->row_no, array('class' => 'pull-left form-control row_no')) !!}
+                                        <a href="{{ asset('uploads/topics/'.$file->file) }}"
+                                           target="_blank">
+                                            {!! Helper::GetIcon(asset('uploads/topics/'),$file->file) !!}
+                                            {{$file->file}}</a>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            {!! $file_title !!}
+                                        </small>
+                                    </td>
+                                    <td class="text-center">
+                                        <a class="btn btn-sm success"
+                                           href="{{ route("topicsFilesEdit",["webmasterId"=>$WebmasterSection->id,"id"=>$Topic->id,"file_id"=>$file->id]) }}">
+                                            <small><i class="material-icons">
+                                                    &#xe3c9;</i> {{ __('backend.edit') }}</small>
+                                        </a>
+                                        @if(@Auth::user()->permissionsGroup->delete_status)
+                                            <button class="btn btn-sm warning" data-toggle="modal"
+                                                    data-target="#mf-{{ $file->id }}"
+                                                    ui-toggle-class="bounce"
+                                                    ui-target="#animate">
+                                                <small><i class="material-icons">
+                                                        &#xe872;</i> {{ __('backend.delete') }}
+                                                </small>
+                                            </button>
+                                        @endif
+
+                                    </td>
+                                </tr>
+                                <!-- .modal -->
+                                <div id="mf-{{ $file->id }}" class="modal fade" data-backdrop="true">
+                                    <div class="modal-dialog" id="animate">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">{{ __('backend.confirmation') }}</h5>
+                                            </div>
+                                            <div class="modal-body text-center p-lg">
+                                                <p>
+                                                    {{ __('backend.confirmationDeleteMsg') }}
+                                                    <br>
+                                                    <strong>[ {!! $file_title !!} ]</strong>
+                                                </p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn dark-white p-x-md"
+                                                        data-dismiss="modal">{{ __('backend.no') }}</button>
+                                                <a href="{{ route("topicsFilesDestroy",["webmasterId"=>$WebmasterSection->id,"id"=>$Topic->id,"file_id"=>$file->id]) }}"
+                                                   class="btn danger p-x-md">{{ __('backend.yes') }}</a>
+                                            </div>
+                                        </div><!-- /.modal-content -->
+                                    </div>
+                                </div>
+                                <!-- / .modal -->
+                            @endforeach
+
+                            </tbody>
+                        </table>
+                        <div class="row">
+                            <div class="col-sm-3 hidden-xs">
+                                <select name="action" id="action4"
+                                        class="form-control c-select w-sm inline v-middle" required>
+                                    <option value="">{{ __('backend.bulkAction') }}</option>
+                                    <option value="order">{{ __('backend.saveOrder') }}</option>
+                                    @if(@Auth::user()->permissionsGroup->delete_status)
+                                        <option value="delete">{{ __('backend.deleteSelected') }}</option>
+                                    @endif
+                                </select>
+                                <button type="submit" id="submit_all4"
+                                        class="btn white">{{ __('backend.apply') }}</button>
+                            </div>
+                        </div>
+                        {{Form::close()}}
+                    @endif
                 @endif
             @else
 
@@ -118,6 +240,8 @@
                     </div>
                 @endif
                 @if(count($Topic->attachFiles)>0)
+                    <hr>
+                    <h6 class="m-b">{{ __('backend.topicAttach') }} ({{ $Topic->attachFiles->count() }})</h6>
                     {{Form::open(['route'=>['topicsFilesUpdateAll',$WebmasterSection->id,$Topic->id],'method'=>'post'])}}
                     <table class="table table-bordered">
                         <thead class="dker">
@@ -261,4 +385,51 @@
         </div>
     </div>
 @endif
+
+@push('after-scripts')
+<style>
+/* Force only the new vertical button layout - override everything within table cells */
+.table td .btn {
+    margin-bottom: 15px !important;
+    margin-right: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    float: none !important;
+    clear: both !important;
+}
+
+.table td .btn:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Ensure table cells have proper padding */
+.table td {
+    padding: 15px 8px !important;
+    vertical-align: top !important;
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    $('#attach_files').on('change', function() {
+        var files = this.files;
+        var fileList = $('#file-list');
+        var fileNames = $('#file-names');
+        
+        if (files.length > 0) {
+            fileList.show();
+            fileNames.empty();
+            
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                var fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                fileNames.append('<li><i class="fa fa-file"></i> ' + file.name + ' <small class="text-muted">(' + fileSize + ')</small></li>');
+            }
+        } else {
+            fileList.hide();
+        }
+    });
+});
+</script>
+@endpush
 {{-- End of Additional Files--}}

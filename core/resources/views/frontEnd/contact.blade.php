@@ -175,15 +175,15 @@
 {{--                                </div>--}}
 {{--                            @endif--}}
 
-                                            {{-- PHONE --}}
-                            @if(Helper::GeneralSiteSettings("contact_t3") !="")
+                                            <!-- {{-- PHONE --}} -->
+                            <!-- @if(Helper::GeneralSiteSettings("contact_t3") !="")
                                 <div class="phone">
                                     <i class="bi bi-telephone"></i>
                                     <h4>{{ __('frontend.callPhone') }}:</h4>
                                     <p><span
                                             dir="ltr">{{ Helper::GeneralSiteSettings("contact_t3") }}</span></p>
                                 </div>
-                            @endif
+                            @endif -->
 
                                             {{-- MOBILE --}}
 {{--                            @if(Helper::GeneralSiteSettings("contact_t5") !="")--}}
@@ -237,7 +237,7 @@
                                 {!! Form::email('contact_email',"", array('placeholder' => __('frontend.yourEmail'),'class' => 'form-control','id'=>'contact_email','required'=>'required')) !!}
                             </div>
                             <div class="col-md-4 form-group mt-3 mt-md-0">
-                                {!! Form::text('contact_phone',"", array('placeholder' => __('frontend.phone'),'class' => 'form-control','id'=>'contact_phone','required'=>'required')) !!}
+                                {!! Form::text('contact_phone',"", array('placeholder' => __('frontend.phone'),'class' => 'form-control','id'=>'contact_phone')) !!}
                             </div>
                         </div>
                         <div class="form-group mt-3">

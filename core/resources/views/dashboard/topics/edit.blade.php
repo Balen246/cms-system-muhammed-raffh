@@ -622,22 +622,36 @@ if ($WebmasterSection->$title_var != "") {
                                 <label for="attach_file"
                                        class="col-sm-2 form-control-label">{!!  __('backend.topicAttach') !!}</label>
                                 <div class="col-sm-10">
-                                    @if($Topic->attach_file!="")
-                                        <div id="topic_attach" class="col-sm-4 box p-a-xs">
-                                            <a target="_blank"
-                                               href="{{ asset('uploads/topics/'.$Topic->attach_file) }}"> {{ $Topic->attach_file }} </a>
-                                            <br>
-                                            <a onclick="document.getElementById('topic_attach').style.display='none';document.getElementById('attach_delete').value='1';document.getElementById('undo2').style.display='block';"
-                                               class="btn btn-sm btn-default">{!!  __('backend.delete') !!}</a>
+                                    {!! Form::file('attach_files[]', array('class' => 'form-control','id'=>'attach_file','accept'=>' .'.@str_replace(",",",.",@$allowed_file_types),'multiple'=>'multiple')) !!}
+                                    <small class="form-text text-muted">
+                                        <i class="fa fa-info-circle"></i> You can select multiple files at once (Ctrl+Click or Cmd+Click)
+                                    </small>
+                                    <div id="main-file-list" class="mt-2" style="display: none;">
+                                        <strong>Selected files:</strong>
+                                        <ul id="main-file-names" class="list-unstyled mt-1"></ul>
+                                    </div>
+                                    @if(count($Topic->attachFiles)>0)
+                                        <hr>
+                                        <h6 class="m-b">{{ __('backend.additionalFiles') }} ({{ $Topic->attachFiles->count() }})</h6>
+                                        <div class="row">
+                                            @php($title_var = 'title_' . @Helper::currentLanguage()->code)
+                                            @php($title_var2 = 'title_' . config('smartend.default_language'))
+                                            @foreach($Topic->attachFiles as $file)
+                                                @php($file_title = $file->$title_var != '' ? $file->$title_var : $file->$title_var2)
+                                                <div class="col-sm-4">
+                                                    <a href="{{ asset('uploads/topics/'.$file->file) }}" target="_blank" class="btn btn-block btn-default text-left" style="margin-bottom:10px; white-space: normal;">
+                                                        {!! Helper::GetIcon(asset('uploads/topics/'),$file->file) !!}
+                                                        &nbsp; {{ $file_title ?: $file->file }}
+                                                    </a>
+                                                    <a href="{{ route('topicsFilesDestroy',["webmasterId"=>$WebmasterSection->id,"id"=>$Topic->id,"file_id"=>$file->id]) }}"
+                                                       class="btn btn-sm btn-danger btn-block"
+                                                       onclick="return confirm('{{ __('backend.confirmationDeleteMsg') }}');">
+                                                        {{ __('backend.delete') }}
+                                                    </a>
+                                                </div>
+                                            @endforeach
                                         </div>
-                                        <div id="undo2" class="col-sm-4 p-a-xs" style="display: none">
-                                            <a onclick="document.getElementById('topic_attach').style.display='block';document.getElementById('attach_delete').value='0';document.getElementById('undo2').style.display='none';">
-                                                <i class="material-icons">
-                                                    &#xe166;</i> {!!  __('backend.undoDelete') !!}</a>
-                                        </div>
-                                        {!! Form::hidden('attach_delete','0', array('id'=>'attach_delete')) !!}
                                     @endif
-                                    {!! Form::file('attach_file', array('class' => 'form-control','id'=>'attach_file','accept'=>".".@str_replace(",",",.",@$allowed_file_types))) !!}
                                 </div>
                             </div>
                         @endif
@@ -1226,6 +1240,31 @@ if ($WebmasterSection->$title_var != "") {
         </div>
     </div>
 @endsection
+
+@push('after-scripts')
+<script>
+$(document).ready(function() {
+    $('#attach_file').on('change', function() {
+        var files = this.files;
+        var fileList = $('#main-file-list');
+        var fileNames = $('#main-file-names');
+        
+        if (files.length > 0) {
+            fileList.show();
+            fileNames.empty();
+            
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                var fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                fileNames.append('<li><i class="fa fa-file"></i> ' + file.name + ' <small class="text-muted">(' + fileSize + ')</small></li>');
+            }
+        } else {
+            fileList.hide();
+        }
+    });
+});
+</script>
+@endpush
 @push("after-scripts")
     <script type="text/javascript">
         $("#checkAll").click(function () {

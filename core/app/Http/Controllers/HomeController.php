@@ -571,7 +571,7 @@ class HomeController extends Controller
         $validation = [
             'contact_name' => 'required',
             'contact_email' => 'required|email',
-            'contact_phone' => 'required',
+            'contact_phone' => 'nullable',
             'contact_subject' => 'required',
             'contact_message' => 'required'
         ];
@@ -592,7 +592,7 @@ class HomeController extends Controller
             $Webmail->date = date("Y-m-d H:i:s");
             $Webmail->from_email = strip_tags($request->contact_email);
             $Webmail->from_name = strip_tags($request->contact_name);
-            $Webmail->from_phone = @str_replace("+", "", strip_tags($request->contact_phone_full));
+            $Webmail->from_phone = $request->contact_phone_full ? @str_replace("+", "", strip_tags($request->contact_phone_full)) : null;
             $Webmail->to_email = $site_email;
             $Webmail->to_name = @Helper::GeneralSiteSettings($site_title_var);
             $Webmail->status = 0;
@@ -645,7 +645,6 @@ class HomeController extends Controller
                 $Contact->email = strip_tags($request->subscribe_email);
                 $Contact->status = 1;
                 $Contact->save();
-
                 // subscribe to newsletter if active
                 Helper::news_letter_subscribe($Contact->email, $Contact->first_name, "");
 

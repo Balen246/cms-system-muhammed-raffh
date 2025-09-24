@@ -80,6 +80,9 @@ $SliderBanners = Helper::BannersList(Helper::GeneralWebmasterSettings("home_bann
                                                 @if($SliderBanner->$link_var !="")
                                                     <a href="{!! $SliderBanner->$link_var !!}"
                                                        class="btn-theme animate__animated animate__fadeInUp slider-link">{{ __('frontend.moreDetails') }}</a>
+                                                @else
+                                                    <a href="#services"
+                                                       class="btn-theme animate__animated animate__fadeInUp slider-link">{{ __('frontend.moreDetails') }}</a>
                                                 @endif
                                             @endif
                                         </div>
